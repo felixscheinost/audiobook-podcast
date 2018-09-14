@@ -13,6 +13,8 @@ import Debug.Trace (traceShow)
 import Data.List (isSuffixOf)
 import qualified Data.ByteString.Lazy.Char8 as C
 import Text.Read(readMaybe)
+import Web.Spock
+import Web.Spock.Config
 
 data Opts = Opts
     { libraryPath :: Maybe String
@@ -31,18 +33,34 @@ instance FromJSON Book where
     <*> v .: "title"
     <*> v .: "formats"
 
+type Server state = SpockM () state () ()
+newtype State = WithBooks [Book]
+
 main :: IO ()
 main = do
     opts <- runParser
-    res <- calibreDbList opts
-    case res of
-        Left err -> putStrLn $ "error:" ++ err
-        Right res -> putStrLn $ show $ filterAudiobooks res
+    books <- getBooks
+    spockCfg <- defaultSpockCfg (WithBooks books) PCNoDatabase ()
+    runSpock (port opts) (spock spockCfg app)
+                
+app :: Server State
+app = get root (text "Hello World!")
 
 filterAudiobooks :: [Book] -> [Book]
 filterAudiobooks = filter hasZIP
     where
         hasZIP = any (isSuffixOf "zip") . formats
+
+getBooks :: IO [Book]
+getBooks = do
+    -- TODO: Don't run parser everytime (state?)
+    opts <- runParser
+    res <- calibreDbList opts
+    case res of
+        Left err -> do putStrLn ("error getting books:" ++ err)
+                       return []
+
+        Right res -> return (filterAudiobooks res)
 
 {-|
 Run `calibredb list`.
@@ -74,8 +92,8 @@ The options parser
 -}
 optParser :: Parser Opts
 optParser = Opts
-    <$> (optional $ strOption $ long "library-path" <> help "Path to the calibre library")
-    <*> (option int $ long "port" <> help "The port to run the server on" <> value 8090)
+    <$> optional (strOption $ long "library-path" <> help "Path to the calibre library")
+    <*> option int (long "port" <> help "The port to run the server on" <> value 8090)
 
 {-|
 Runs the command line parser
