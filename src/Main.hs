@@ -2,28 +2,31 @@
 
 module Main where
 
-import Control.Applicative (optional)
-import Data.Maybe (fromMaybe)
-import Data.Semigroup ((<>))
-import Options.Applicative
-import Data.Aeson
-import System.Process
-import System.Exit (ExitCode(..))
-import Debug.Trace (traceShow)
-import Data.List (isSuffixOf)
-import qualified Data.ByteString.Lazy.Char8 as C
-import Text.Read(readMaybe)
-import Web.Spock
-import Web.Spock.Config
+import           Control.Applicative                  (optional)
+import           Data.Aeson
+import qualified Data.ByteString.Lazy.Char8           as C
+import           Data.List                            (isSuffixOf)
+import           Data.Maybe                           (fromMaybe)
+import           Data.Semigroup                       ((<>))
+import           Debug.Trace                          (traceShow)
+import           Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
+import           Network.Wai.Middleware.Static        (addBase, noDots,
+                                                       staticPolicy, (>->))
+import           Options.Applicative
+import           System.Exit                          (ExitCode (..))
+import           System.Process
+import           Text.Read                            (readMaybe)
+import           Views                                (homeView)
+import           Web.Scotty
 
 data Opts = Opts
     { libraryPath :: Maybe String
-    , port :: Int
+    , port        :: Int
     }
 
 data Book = Book
     { authors :: String
-    , title :: String
+    , title   :: String
     , formats :: [String]
     } deriving (Show)
 
@@ -33,33 +36,36 @@ instance FromJSON Book where
     <*> v .: "title"
     <*> v .: "formats"
 
-type Server state = SpockM () state () ()
-newtype State = WithBooks [Book]
-
 main :: IO ()
 main = do
     opts <- runParser
-    books <- getBooks
-    spockCfg <- defaultSpockCfg (WithBooks books) PCNoDatabase ()
-    runSpock (port opts) (spock spockCfg app)
-                
-app :: Server State
-app = get root (text "Hello World!")
+    books <- getBooks opts
+    scotty (port opts) app
+
+app :: ScottyM ()
+app = do
+    middleware $ staticPolicy (noDots >-> addBase "assets")
+    middleware logStdout
+    home
+
+home :: ScottyM ()
+home = get "/" homeView
 
 filterAudiobooks :: [Book] -> [Book]
-filterAudiobooks = filter hasZIP
+filterAudiobooks = filter hasCorrectFormat
     where
-        hasZIP = any (isSuffixOf "zip") . formats
-
-getBooks :: IO [Book]
-getBooks = do
-    -- TODO: Don't run parser everytime (state?)
-    opts <- runParser
+        correctSuffix f = any (`isSuffixOf` f) ["zip", "mp3", "m4b"]
+        hasCorrectFormat = any correctSuffix . formats
+{-|
+Fetches books from the CalibreDB and returns only those that contain audiobooks
+-}
+getBooks :: Opts -> IO [Book]
+getBooks opts = do
+    putStrLn "Reading Calibre DB"
     res <- calibreDbList opts
     case res of
         Left err -> do putStrLn ("error getting books:" ++ err)
                        return []
-
         Right res -> return (filterAudiobooks res)
 
 {-|
@@ -73,7 +79,7 @@ calibreDbList opts = do
         ExitSuccess ->
             case decode $ C.pack stdout of
                 Just books -> Right books
-                Nothing -> Left "couldn't parse result"
+                Nothing    -> Left "couldn't parse result"
 
         ExitFailure code -> Left $ "calibredb returned code " ++ show code ++ ":" ++ stderr
     where
