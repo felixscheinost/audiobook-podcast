@@ -47,7 +47,8 @@ layout b =
       script ! src "/js/bootstrap.bundle.min.js" $ mempty
 
 homeView :: [Audiobook] -> MyActionM ()
-homeView books = blaze $ layout $ do
+homeView books =
+  blaze $
+  layout $ do
     h1 "Audiobooks in Calibre:"
     ul $ forM_ books $ \book -> li $ span $ toHtml $ show book
-
