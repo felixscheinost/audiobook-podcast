@@ -2,24 +2,22 @@
 
 module Main where
 
-import           Control.Concurrent.MVar              (newMVar, putMVar,
-                                                       takeMVar)
+import           Control.Concurrent.MVar              (newMVar)
 import           Control.Monad                        (void)
 import           Control.Monad.Trans.Class            (lift)
 import           Control.Monad.Trans.Maybe            (MaybeT (..), runMaybeT)
 import qualified Control.Monad.Trans.Reader           as R
+import           Controllers
 import           Data.Semigroup                       ((<>))
-import qualified Database                             as DB
 import qualified Database.SQLite.Simple               as SQL
-import           Network.Wai.Middleware.RequestLogger (logStdout)
+import           Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import           Network.Wai.Middleware.Static        (addBase, noDots,
                                                        staticPolicy, (>->))
 import           Options.Applicative
 import           System.Directory                     (doesPathExist)
 import           Text.Read                            (readMaybe)
 import           Types
-import           Views                                (homeView)
-import           Web.Scotty.Trans                     (get, middleware, scottyT)
+import           Web.Scotty.Trans                     (middleware, scottyT)
 
 main :: IO ()
 main =
@@ -46,17 +44,8 @@ setupState opts =
 app :: MyScottyM ()
 app = do
   middleware $ staticPolicy (noDots >-> addBase "assets")
-  middleware logStdout
+  middleware logStdoutDev
   home
-
-home :: MyScottyM ()
-home =
-  get "/" $ do
-    state <- lift R.ask
-    conn <- lift $ lift $ takeMVar (stateDbConn state)
-    books <- lift $ lift $ DB.getBooks (stateOpts state) conn
-    lift $ lift $ putMVar (stateDbConn state) conn
-    homeView books
 
 int :: ReadM Int
 int = eitherReader parse

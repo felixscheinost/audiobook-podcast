@@ -29,6 +29,7 @@ executable calibre-audiobook
       Types
       Views
       Database
+      Controllers
   build-depends:
       base >=4.7 && <5
     , blaze-html
@@ -38,6 +39,7 @@ executable calibre-audiobook
     , filepath
     , monad-logger
     , optparse-applicative
+    , process
     , scotty
     , sqlite-simple
     , text
