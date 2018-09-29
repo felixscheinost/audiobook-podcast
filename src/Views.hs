@@ -6,10 +6,7 @@ module Views
 
 import           Data.Foldable                 (forM_)
 import           Data.Monoid                   (mempty)
-import qualified Data.Text                     as T
-import           Network.Wai                   (pathInfo)
 import           Prelude                       hiding (div, head, id, span)
-import           Text.Blaze                    (toMarkup)
 import           Text.Blaze.Html               (Html, string, toHtml)
 import           Text.Blaze.Html.Renderer.Text (renderHtml)
 import           Text.Blaze.Html5              (Html, a, body, button,
@@ -21,7 +18,7 @@ import           Text.Blaze.Html5.Attributes   (charset, class_, content, href,
                                                 httpEquiv, id, media, name,
                                                 placeholder, rel, src, type_)
 import           Text.Blaze.Internal           (preEscapedText)
-import           Types                         (Book (..), MyActionM)
+import           Types                         (Audiobook (..), MyActionM)
 import           Web.Scotty.Trans              (html)
 
 blaze :: Html -> MyActionM ()
@@ -49,8 +46,8 @@ layout b =
       b
       script ! src "/js/bootstrap.bundle.min.js" $ mempty
 
-homeView :: [Book] -> MyActionM ()
+homeView :: [Audiobook] -> MyActionM ()
 homeView books = blaze $ layout $ do
     h1 "Audiobooks in Calibre:"
-    ul $ forM_ books $ \book -> li $ span $ toHtml $ bookTitle book
+    ul $ forM_ books $ \book -> li $ span $ toHtml $ show book
 

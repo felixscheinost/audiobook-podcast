@@ -3,26 +3,35 @@
 module Types where
 
 import           Control.Monad.Trans.Reader (ReaderT)
-import           Data.Aeson
 import           Data.Text.Lazy             (Text)
 import           Web.Scotty.Trans           (ActionT, ScottyT)
+import System.FilePath ((</>))
+import Control.Concurrent.MVar (MVar)
+import qualified Database.SQLite.Simple as Sql
 
 data Opts = Opts
-  { libraryPath :: Maybe String
-  , port        :: Int
+  { port        :: Int
+  , libraryFolder :: String
   }
 
-data Book = Book
-  { bookAuthors :: String
-  , bookTitle   :: String
-  , bookFormats :: [String]
+libraryPath :: Opts -> FilePath
+libraryPath o = libraryFolder o </> "metadata.db"
+
+data AppState = AppState
+    { stateOpts :: Opts
+    , stateDbConn :: MVar Sql.Connection 
+    }
+
+data AudiobookFormat = M4B | ZIP | MP3
+    deriving (Show, Read, Eq, Enum)
+
+data Audiobook = Audiobook
+  { abId :: Integer
+  , abTitle   :: String
+  , abFormat :: AudiobookFormat
+  , abPath :: FilePath
   } deriving (Show)
 
-instance FromJSON Book where
-  parseJSON =
-    withObject "Book" $ \v ->
-      Book <$> v .: "authors" <*> v .: "title" <*> v .: "formats"
+type MyScottyM = ScottyT Text (ReaderT AppState IO)
 
-type MyScottyM = ScottyT Text (ReaderT Opts IO)
-
-type MyActionM = ActionT Text (ReaderT Opts IO)
+type MyActionM = ActionT Text (ReaderT AppState IO)

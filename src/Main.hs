@@ -2,28 +2,44 @@
 
 module Main where
 
-import           Control.Applicative                  (optional)
+import Control.Monad (void)
 import           Control.Monad.Trans.Class            (lift)
 import qualified Control.Monad.Trans.Reader           as R
-import           Data.Aeson
-import qualified Data.ByteString.Lazy.Char8           as C
-import           Data.List                            (isSuffixOf)
+import Control.Concurrent.MVar (newMVar, putMVar, takeMVar)
+import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import           Data.Semigroup                       ((<>))
 import           Network.Wai.Middleware.RequestLogger (logStdout)
 import           Network.Wai.Middleware.Static        (addBase, noDots,
                                                        staticPolicy, (>->))
 import           Options.Applicative
-import           System.Exit                          (ExitCode (..))
-import           System.Process
 import           Text.Read                            (readMaybe)
 import           Types
 import           Views                                (homeView)
-import           Web.Scotty.Trans
+import           Web.Scotty.Trans (scottyT, get, middleware)
+import System.Directory (doesPathExist)
+import qualified Database.SQLite.Simple as SQL
+import qualified Database as DB
 
 main :: IO ()
-main = do
-    opts <- runParser
-    scottyT (port opts) (`R.runReaderT` opts) app
+main = (void . runMaybeT) $ do
+    opts <- lift runParser >>= checkOptions
+    state <- lift $ setupState opts
+    lift $ scottyT (port opts) (`R.runReaderT` state) app
+
+checkOptions :: Opts -> MaybeT IO Opts
+checkOptions opts = MaybeT $ do
+    let path = libraryPath opts
+    exists <- doesPathExist path
+    if not exists  then do
+        putStrLn $ "No such file '" ++ path ++ "'"
+        return Nothing
+    else
+        return (Just opts)
+
+setupState :: Opts -> IO AppState
+setupState opts = AppState
+    <$> return opts
+    <*> (SQL.open (libraryPath opts) >>= newMVar)
 
 app :: MyScottyM ()
 app = do
@@ -33,19 +49,18 @@ app = do
 
 home :: MyScottyM ()
 home = get "/" $ do
-    opts <- lift R.ask
-    books <- lift $ lift $ getBooks opts
+    state <- lift R.ask
+    conn <- lift $ lift $ takeMVar (stateDbConn state)
+    books <- lift $ lift $ DB.getBooks (stateOpts state) conn
+    lift $ lift $ putMVar (stateDbConn state) conn
     homeView books
 
-filterAudiobooks :: [Book] -> [Book]
-filterAudiobooks = filter hasCorrectFormat
-    where
-        correctSuffix f = any (`isSuffixOf` f) ["zip", "mp3", "m4b"]
-        hasCorrectFormat = any correctSuffix . bookFormats
+--withConnection :: (SQL.Connection -> MyScottyM ()) -> MyScottyM ()
+--withConnection f = ScottyT $ do
 {-|
 Fetches books from the CalibreDB and returns only those that contain audiobooks
 -}
-getBooks :: Opts -> IO [Book]
+{-getBooks :: Opts -> IO [Book]
 getBooks opts = do
     putStrLn "Reading Calibre DB"
     res <- calibreDbList opts
@@ -71,7 +86,7 @@ calibreDbList opts = do
     where
         basicArgs = ["list", "--fields", "title,authors,formats", "--for-machine"]
         libraryArgs lib = basicArgs ++ ["--with-library", lib]
-        args = maybe basicArgs libraryArgs $ libraryPath opts
+        args = maybe basicArgs libraryArgs $ libraryPath opts-}
 
 int :: ReadM Int
 int = eitherReader parse
@@ -84,8 +99,8 @@ The options parser
 -}
 optParser :: Parser Opts
 optParser = Opts
-    <$> optional (strOption $ long "library-path" <> help "Path to the calibre library")
-    <*> option int (long "port" <> help "The port to run the server on" <> value 8090)
+    <$> option int (long "port" <> help "The port to run the server on" <> value 8090)
+    <*> argument str (metavar "CALIBRE_FOLDER" <> help "Path to the calibre library")
 
 {-|
 Runs the command line parser
