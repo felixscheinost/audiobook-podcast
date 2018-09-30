@@ -4,11 +4,15 @@ module Types where
 
 import           Control.Concurrent.MVar        (MVar)
 import           Control.Monad.Trans.Reader     (ReaderT)
+import Data.Char (toLower)
 import qualified Data.Text                      as T
 import           Data.Text.Lazy                 (Text)
 import           Database.SQLite.Simple         (SQLData(SQLText))
 import qualified Database.SQLite.Simple         as Sql
 import           Database.SQLite.Simple.ToField
+import           Database.SQLite.Simple.FromField
+import           Database.SQLite.Simple.Ok
+import           Database.SQLite.Simple.Internal (Field(..))
 import           System.FilePath                ((</>))
 import           Web.Scotty.Trans               (ActionT, ScottyT)
 
@@ -27,14 +31,34 @@ data AppState = AppState
 
 type AppStateAndConnection = (AppState, Sql.Connection)
 
+data AudioFormat = 
+    MP3
+    deriving (Show, Read, Eq, Enum)
+
 data AudiobookFormat
-  = M4B
+  = SingleFile AudioFormat
   | ZIP
-  | MP3
-  deriving (Show, Read, Eq, Enum)
+  deriving (Show, Read, Eq)
+
+possibleAudiobookFormats :: [AudiobookFormat]
+possibleAudiobookFormats = ZIP : map SingleFile (enumFrom $ toEnum 0)
+
+fileExtension :: AudiobookFormat -> String
+fileExtension (SingleFile f) = map toLower $ show f
+fileExtension f = map toLower $ show f
 
 instance ToField AudiobookFormat where
-    toField = SQLText . T.pack . show 
+    toField (SingleFile format) = SQLText $ T.pack $ show format
+    toField format = SQLText $ T.pack $ show format
+
+instance FromField AudiobookFormat where
+    fromField f@(Field (SQLText t) _) 
+        | format == "mp3" = Ok $ SingleFile MP3
+        | format == "zip" = Ok ZIP
+        | otherwise = returnError ConversionFailed f ("unknown format '" ++ format ++ "'")
+        where
+            format = T.unpack $ T.toLower t
+    fromField f                     = returnError ConversionFailed f "expecting SQLText column type"
 
 data Audiobook = Audiobook
   { abId      :: Integer

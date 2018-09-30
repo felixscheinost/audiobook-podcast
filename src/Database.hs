@@ -16,7 +16,7 @@ import Debug.Trace
 
 data AudiobookPathQueryResult = AudiobookPathQueryResult
   { apqId     :: Integer
-  , apqFormat :: String
+  , apqFormat :: AudiobookFormat
   , apqPath   :: String
   , apqName   :: String
   }
@@ -40,9 +40,8 @@ audiobookFrom opts l r =  Audiobook
     (apqId l)
     (amqTitle r)
     [amqAuthor r]
-    -- TODO: Don't use read, check for wrong values
-    (read $ apqFormat l)
-    (libraryFolder opts </> apqPath l </> apqName l <.> map toLower (apqFormat l))
+    (apqFormat l)
+    (libraryFolder opts </> apqPath l </> apqName l <.> fileExtension (apqFormat l))
 
 ------------------------------------------------------------------------------
 -- | Add audiobook to result of already created audiobooks.
@@ -58,7 +57,12 @@ merge opts l r (a:as)
     | otherwise =
         audiobookFrom opts l r : a : as
 
-
+------------------------------------------------------------------------------
+-- | Create a list of audiobooks from
+-- |  - a list of distinct audiobooks, containing the format and path to the audiobook
+-- |  - a list of audiobooks JOINED with their author -> multiple entries for multiple authors
+-- |  Both lists are sorted by ID ASC.
+-- |   => Go through both lists at once and match books
 toAudiobook :: Opts -> [Audiobook] -> [AudiobookPathQueryResult] -> [AudiobookMetadataQueryResult] -> [Audiobook]
 toAudiobook _ res [] _ = reverse res
 toAudiobook _ res _ [] = reverse res
@@ -73,16 +77,15 @@ queryParameters i = intersperse ',' $ replicate i '?'
 getBooks :: ReaderT AppStateAndConnection IO [Audiobook]
 getBooks = do
     (state, conn) <- ask
-    let formats = enumFrom $ toEnum 0 :: [AudiobookFormat]
     -- Filter relevant formats and join with data table to get path to book
     apqBooks <- lift (query conn
         (Query $ pack ("SELECT b.id, MAX(d.format), b.path, d.name \
         \ FROM books AS b \
         \ LEFT JOIN data AS d ON b.id=d.book \
-        \ WHERE d.format IN (" ++ queryParameters (length formats) ++ ") \
+        \ WHERE d.format IN (" ++ queryParameters (length possibleAudiobookFormats) ++ ") \
         \ GROUP BY b.title \
         \ ORDER BY b.id"))
-        formats)
+        possibleAudiobookFormats)
     -- Fetch metadata for relevant books
     amqBooks <- lift (query conn
         (Query $ pack ("SELECT b.id, b.title, a.name \
