@@ -76,31 +76,18 @@ warpSettings foundation =
         defaultSettings
 
 getAppAndWarpSettings :: IO (Settings, Application)
-getAppAndWarpSettings = do
-    settings <- getAppSettings
-    foundation <- makeFoundation settings
+getAppAndWarpSettings = do 
+    foundation <- getAppSettings >>= makeFoundation
     app <- makeApplication foundation
-    wsettings <- getDevSettings $ warpSettings foundation
-    return (wsettings, app)
+    return (warpSettings foundation, app)
     
--- | For yesod devel, return the Warp settings and WAI Application.
-getApplicationDev :: IO (Settings, Application)
-getApplicationDev = do
-    settings <- getAppSettings
-    foundation <- makeFoundation settings
-    app <- makeApplication foundation
-    wsettings <- getDevSettings $ warpSettings foundation
-    return (wsettings, app)
-
 -- | main function for use by yesod devel
 develMain :: IO ()
 develMain = develMainHelper $ do
     (wsettings, app) <- getAppAndWarpSettings
     devWsettings <- getDevSettings wsettings
-    return $ (devWsettings, app)
+    return (devWsettings, app)
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
-appMain = do
-    (wsettings, app) <- getAppAndWarpSettings
-    runSettings wsettings app
+appMain = getAppAndWarpSettings >>= uncurry runSettings
