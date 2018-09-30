@@ -18,6 +18,8 @@ dependencies:
 - yesod-static
 - yesod-core
 - yesod
+- beam-core
+- beam-sqlite
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

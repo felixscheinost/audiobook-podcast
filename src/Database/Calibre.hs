@@ -1,5 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Database.Calibre (
     Audiobook(..),
@@ -7,20 +9,14 @@ module Database.Calibre (
     possibleAudiobookFormats
 ) where
 
+import           Database.Beam
+import           Database.Beam.Sqlite
 import           Import
-import           System.FilePath (replaceFileName, (</>))
+import           System.FilePath      (replaceFileName, (</>))
+import Database.Calibre.Types
 
 libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
-
-data AudioFormat = 
-    MP3
-    deriving (Show, Read, Eq, Enum)
-
-data AudiobookFormat
-    = SingleFile AudioFormat
-    | ZIP
-    deriving (Show, Read, Eq)
 
 possibleAudiobookFormats :: [AudiobookFormat]
 possibleAudiobookFormats = ZIP : map SingleFile (enumFrom $ toEnum 0)

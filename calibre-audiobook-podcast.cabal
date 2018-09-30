@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 716227e806a1bc754653bb27eef416d88a0efa66ff11db6b73a84b5b20f8365d
+-- hash: a96864afc8ac4736e5d5cc615a249259881a677d9fb5e35cf6ce3ef8272c69b1
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -16,6 +16,8 @@ library
       Controllers.Calibre
       Controllers.Home
       Database.Calibre
+      Database.Calibre.Tables
+      Database.Calibre.Types
       Foundation
       Import
       Import.NoFoundation
@@ -28,6 +30,8 @@ library
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-sqlite
     , classy-prelude-yesod
     , fast-logger
     , filepath
@@ -54,6 +58,8 @@ executable calibre-audiobook-podcast
   build-depends:
       aeson
     , base
+    , beam-core
+    , beam-sqlite
     , calibre-audiobook-podcast
     , classy-prelude-yesod
     , fast-logger

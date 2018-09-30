@@ -53,7 +53,6 @@ makeFoundation appSettings = do
 makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- makeLogWare foundation
-    -- Create the WAI application and apply middlewares
     appPlain <- toWaiAppPlain foundation
     return $ logWare $ defaultMiddlewaresNoLogging appPlain
 
