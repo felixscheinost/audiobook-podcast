@@ -41,7 +41,8 @@ layout b =
       meta ! httpEquiv "X-UA-Compatible" ! content "IE=edge,chrome=1"
       meta ! name "description" ! content "Inspire Text"
       meta ! name "viewport" ! content "width=device-width"
-      link ! href "/css/bootstrap.min.css" ! rel "stylesheet" ! media "screen"
+      link ! href "/css/bootstrap.litera.min.css" ! rel "stylesheet" ! media "screen"
+      link ! href "/css/app.css" ! rel "stylesheet" ! media "screen"
     body $ do
       b
       script ! src "/js/bootstrap.bundle.min.js" $ mempty
@@ -50,5 +51,5 @@ homeView :: [Audiobook] -> MyActionM ()
 homeView books =
   blaze $
   layout $ do
-    h1 "Audiobooks in Calibre:"
+    input ! type_ "text" ! placeholder "Search!"
     ul $ forM_ books $ \book -> li $ span $ toHtml $ show book

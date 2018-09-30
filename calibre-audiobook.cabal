@@ -41,6 +41,7 @@ executable calibre-audiobook
     , optparse-applicative
     , process
     , scotty
+    , shakespeare
     , sqlite-simple
     , text
     , transformers

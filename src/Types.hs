@@ -13,7 +13,7 @@ import           Database.SQLite.Simple.ToField
 import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.Ok
 import           Database.SQLite.Simple.Internal (Field(..))
-import           System.FilePath                ((</>))
+import           System.FilePath                ((</>), replaceFileName)
 import           Web.Scotty.Trans               (ActionT, ScottyT)
 
 data Opts = Opts
@@ -67,6 +67,9 @@ data Audiobook = Audiobook
   , abFormat  :: AudiobookFormat
   , abPath    :: FilePath
   } deriving (Show)
+
+abCover :: Audiobook -> FilePath
+abCover ab = replaceFileName (abPath ab) "cover.jpg"
 
 type MyScottyM = ScottyT Text (ReaderT AppState IO)
 
