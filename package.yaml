@@ -1,0 +1,42 @@
+name:    calibre-audiobook-podcast
+version: "0.0.0"
+
+dependencies:
+- aeson
+- base
+- classy-prelude-yesod 
+- filepath
+- optparse-applicative
+- shakespeare
+- warp
+- template-haskell
+- wai
+- wai-extra
+- monad-logger
+- wai-logger
+- fast-logger
+- yesod-static
+- yesod-core
+- yesod
+
+# The library contains all of our application code. The executable
+# defined below is just a thin wrapper.
+library:
+  source-dirs: src
+
+# Runnable executable for our application
+executables:
+  calibre-audiobook-podcast:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall 
+    - -Wcompat 
+    - -Wincomplete-record-updates 
+    - -Wincomplete-uni-patterns 
+    - -Wredundant-constraints
+    dependencies:
+    - calibre-audiobook-podcast
