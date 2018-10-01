@@ -9,11 +9,14 @@ module Foundation where
 import Text.Hamlet          (hamletFile)
 import Yesod.Core.Types     (Logger)
 import Import.NoFoundation
+import Control.Concurrent.MVar (MVar)
+import qualified Database.SQLite.Simple as Sql
 
 data App = App
     { appSettings :: AppSettings
     , appStatic :: Static
     , appLogger      :: Logger
+    , appDbConnection :: MVar Sql.Connection
     }
 
 mkYesodData "App" $(parseRoutesFile "routes")

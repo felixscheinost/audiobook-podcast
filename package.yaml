@@ -20,6 +20,7 @@ dependencies:
 - yesod
 - beam-core
 - beam-sqlite
+- sqlite-simple
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

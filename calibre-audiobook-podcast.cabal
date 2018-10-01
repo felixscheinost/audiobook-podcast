@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a96864afc8ac4736e5d5cc615a249259881a677d9fb5e35cf6ce3ef8272c69b1
+-- hash: e74c1efc8be0da7a1406018ea0b1c2193107c1e50517760a73d59fc9ec9cb7b0
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -16,6 +16,7 @@ library
       Controllers.Calibre
       Controllers.Home
       Database.Calibre
+      Database.Calibre.Queries
       Database.Calibre.Tables
       Database.Calibre.Types
       Foundation
@@ -38,6 +39,7 @@ library
     , monad-logger
     , optparse-applicative
     , shakespeare
+    , sqlite-simple
     , template-haskell
     , wai
     , wai-extra
@@ -67,6 +69,7 @@ executable calibre-audiobook-podcast
     , monad-logger
     , optparse-applicative
     , shakespeare
+    , sqlite-simple
     , template-haskell
     , wai
     , wai-extra

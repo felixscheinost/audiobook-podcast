@@ -1,12 +1,13 @@
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Database.Calibre.Tables where
 
@@ -16,26 +17,27 @@ import           Database.Calibre.Types
 import           Import
 
 data BookT f = Book
-    { _bookId    :: Columnar f Integer
-    , _bookPath  :: Columnar f Text
-    , _bookTitle :: Columnar f Text
+    { bookId    :: Columnar f Integer
+    , bookPath  :: Columnar f Text
+    , bookTitle :: Columnar f Text
     } deriving Generic
 
 type Book = BookT Identity
 type BookId = PrimaryKey BookT Identity
 
-instance Beamable BookT
-instance Beamable (PrimaryKey BookT)
 deriving instance Show Book
+deriving instance Eq Book
 deriving instance Show BookId
 
+instance Beamable BookT
 instance Table BookT where
     data PrimaryKey BookT f = BookId (Columnar f Integer) deriving Generic
-    primaryKey = BookId . _bookId
+    primaryKey = BookId .bookId
+instance Beamable (PrimaryKey BookT)
 
 data AuthorT f = Author
-    { _authorId   :: Columnar f Integer
-    , _authorName :: Columnar f Text
+    { authorId   :: Columnar f Integer
+    , authorName :: Columnar f Text
     } deriving Generic
 
 type Author = AuthorT Identity
@@ -48,13 +50,14 @@ deriving instance Show AuthorId
 
 instance Table AuthorT where
     data PrimaryKey AuthorT f = AuthorId (Columnar f Integer) deriving Generic
-    primaryKey = AuthorId . _authorId
+    primaryKey = AuthorId . authorId
 
 data DataT f = Data
-    { _dataId     :: Columnar f Integer
-    , _dataFormat :: Columnar f AudiobookFormat
-    , _dataName   :: Columnar f Text
-    , _dataBook   :: PrimaryKey BookT f
+    { dataId     :: Columnar f Integer
+    --, dataFormat :: Columnar f AudiobookFormat
+    , dataFormat :: Columnar f Text
+    , dataName   :: Columnar f Text
+    , dataBook   :: PrimaryKey BookT f
     } deriving Generic
 
 type Data = DataT Identity
@@ -67,4 +70,20 @@ deriving instance Show DataId
 
 instance Table DataT where
     data PrimaryKey DataT f = DataId (Columnar f Integer) deriving Generic
-    primaryKey = DataId . _dataId
+    primaryKey = DataId . dataId
+
+data CalibreDb f = CalibreDb
+    { cbBooks   :: f (TableEntity BookT)
+    , cbAuthors :: f (TableEntity AuthorT)
+    , cbData   :: f (TableEntity DataT)
+    } deriving Generic
+
+instance Database be CalibreDb
+
+calibreDb :: DatabaseSettings be CalibreDb
+calibreDb = defaultDbSettings
+            `withDbModification` dbModification {
+                cbBooks = modifyTable (const "books") tableModification,
+                cbAuthors = modifyTable (const "authors") tableModification,
+                cbData = modifyTable (const "data") $ Data "id" "format" "name" (BookId "book")
+            }                

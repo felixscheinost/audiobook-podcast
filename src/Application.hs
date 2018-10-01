@@ -1,12 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Application where
 
 import           Control.Monad.Logger                 (liftLoc, runLoggingT)
+import qualified Database.SQLite.Simple               as Sql
 import           Import
 import           Language.Haskell.TH.Syntax           (qLocation)
 import           Network.Wai                          (Middleware)
@@ -22,10 +24,10 @@ import           Network.Wai.Middleware.RequestLogger (Destination (Logger),
                                                        destination,
                                                        mkRequestLogger,
                                                        outputFormat)
+import           Database.Calibre
 import           System.Log.FastLogger                (defaultBufSize,
                                                        newStdoutLoggerSet,
                                                        toLogStr)
-
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
@@ -44,9 +46,10 @@ getAppSettings = loadYamlSettings [configSettingsYml] [] useEnv
 -- performs initialization and returns a foundation datatype value.
 makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
-    static_ <- static "static"
+    appStatic <- static "static"
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    return $ App appSettings static_ appLogger
+    appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
+    return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
 -- applying some additional middlewares.
@@ -69,17 +72,17 @@ warpSettings foundation =
       setPort (appPort $ appSettings foundation)
     -- $ setHost (appHost $ appSettings foundation)
     $ setOnException (\_req e ->
-        when (defaultShouldDisplayException e) 
+        when (defaultShouldDisplayException e)
             $ messageLoggerSource foundation (appLogger foundation)
             $(qLocation >>= liftLoc) "yesod" LevelError (toLogStr $ "Exception from Warp: " ++ show e))
         defaultSettings
 
 getAppAndWarpSettings :: IO (Settings, Application)
-getAppAndWarpSettings = do 
+getAppAndWarpSettings = do
     foundation <- getAppSettings >>= makeFoundation
     app <- makeApplication foundation
     return (warpSettings foundation, app)
-    
+
 -- | main function for use by yesod devel
 develMain :: IO ()
 develMain = develMainHelper $ do

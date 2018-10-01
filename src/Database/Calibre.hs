@@ -4,8 +4,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Database.Calibre (
-    Audiobook(..),
-    abCover,
+    libraryPath,
     possibleAudiobookFormats
 ) where
 
@@ -21,13 +20,5 @@ libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
 possibleAudiobookFormats :: [AudiobookFormat]
 possibleAudiobookFormats = ZIP : map SingleFile (enumFrom $ toEnum 0)
 
-data Audiobook = Audiobook
-    { abId      :: Integer
-    , abTitle   :: String
-    , abAuthors :: [String]
-    , abFormat  :: AudiobookFormat
-    , abPath    :: FilePath
-    } deriving (Show)
-
-abCover :: Audiobook -> FilePath
-abCover ab = replaceFileName (abPath ab) "cover.jpg"
+--abCover :: Audiobook -> FilePath
+--abCover ab = replaceFileName (abPath ab) "cover.jpg"
