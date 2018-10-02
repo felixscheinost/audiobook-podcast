@@ -4,5 +4,6 @@
 
 /static         StaticR     Static      appStatic
 
-/               HomeR       GET
-/cover/#Int     BookCoverR  GET
+/                   HomeR           GET
+/book/#Int/cover    BookCoverR      GET
+/book/#Int/overlay  BookOverlayR    GET

@@ -16,4 +16,9 @@
     <link href="@{StaticR css_app_css}" rel="stylesheet">
   <body>
         ^{pageBody pc}
+        <div .modal.fade tabindex="-1" role="dialog" aria-hidden="true" #ajax-modal>
+            <div .modal-dialog.modal-lg>
+              <div .modal-content>
+        <script src="@{StaticR js_jquery_min_js}">
         <script src="@{StaticR js_bootstrap_bundle_min_js}">
+        <script src="@{StaticR js_app_js}">

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e74c1efc8be0da7a1406018ea0b1c2193107c1e50517760a73d59fc9ec9cb7b0
+-- hash: 01580984b35f286377aae04307604e44d0af60cd9fe0c653d7b48047e7ce035f
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -36,11 +36,14 @@ library
     , classy-prelude-yesod
     , fast-logger
     , filepath
+    , mime-types
     , monad-logger
     , optparse-applicative
     , shakespeare
     , sqlite-simple
     , template-haskell
+    , text
+    , transformers
     , wai
     , wai-extra
     , wai-logger
@@ -56,7 +59,7 @@ executable calibre-audiobook-podcast
       Paths_calibre_audiobook_podcast
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -O
   build-depends:
       aeson
     , base
@@ -66,11 +69,14 @@ executable calibre-audiobook-podcast
     , classy-prelude-yesod
     , fast-logger
     , filepath
+    , mime-types
     , monad-logger
     , optparse-applicative
     , shakespeare
     , sqlite-simple
     , template-haskell
+    , text
+    , transformers
     , wai
     , wai-extra
     , wai-logger

@@ -21,6 +21,9 @@ dependencies:
 - beam-core
 - beam-sqlite
 - sqlite-simple
+- text
+- mime-types
+- transformers
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
@@ -41,5 +44,6 @@ executables:
     - -Wincomplete-record-updates 
     - -Wincomplete-uni-patterns 
     - -Wredundant-constraints
+    - -O
     dependencies:
     - calibre-audiobook-podcast
