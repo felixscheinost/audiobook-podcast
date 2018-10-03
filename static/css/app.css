@@ -15,3 +15,7 @@ body > .container {
 #audiobook-container .audiobook {
     margin-bottom: 15px;
 }
+
+.audiobook img:hover {
+    cursor: pointer
+}

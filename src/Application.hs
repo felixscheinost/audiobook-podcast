@@ -31,16 +31,13 @@ import           System.Log.FastLogger                (defaultBufSize,
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
-import           Controllers.Calibre
+import           Controllers.Book
 import           Controllers.Home
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details
 mkYesodDispatch "App" resourcesApp
-
-getAppSettings :: IO AppSettings
-getAppSettings = loadYamlSettings [configSettingsYml] [] useEnv
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value.
@@ -92,4 +89,7 @@ develMain = develMainHelper $ do
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
-appMain = getAppAndWarpSettings >>= uncurry runSettings
+appMain = do 
+    (warpSettings, app) <- getAppAndWarpSettings
+    
+    runSettings warpSettings app

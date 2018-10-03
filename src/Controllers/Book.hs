@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
-module Controllers.Calibre where
+module Controllers.Book where
 
 import Import
 import Database.Calibre
