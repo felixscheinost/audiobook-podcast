@@ -25,9 +25,6 @@ import           System.FilePath          (replaceFileName, (<.>), (</>))
 libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
 
-possibleAudiobookFormats :: [AudiobookFormat]
-possibleAudiobookFormats = ZIP : map SingleFile (enumFrom $ toEnum 0)
-
 type Audiobook = (Book, Data)
 
 abTitle :: Audiobook -> Text
@@ -39,7 +36,7 @@ abFullPath (book, bookData) = do
     return $ appCalibreLibraryFolder (appSettings app)
         </> T.unpack (bookPath book)
         </> T.unpack (dataName bookData)
-        <.> T.unpack (T.toLower $ dataFormat bookData)
+        <.> T.unpack (toFileExtension $ dataFormat bookData)
 
 abCover :: Audiobook -> Handler FilePath
 abCover ab = (`replaceFileName` "cover.jpg") <$> abFullPath ab

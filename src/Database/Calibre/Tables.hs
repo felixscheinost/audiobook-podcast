@@ -54,8 +54,7 @@ instance Table AuthorT where
 
 data DataT f = Data
     { dataId     :: Columnar f Int
-    --, dataFormat :: Columnar f AudiobookFormat
-    , dataFormat :: Columnar f Text
+    , dataFormat :: Columnar f AudiobookFormat
     , dataName   :: Columnar f Text
     , dataBook   :: PrimaryKey BookT f
     } deriving Generic
