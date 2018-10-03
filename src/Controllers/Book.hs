@@ -24,11 +24,13 @@ getBookOverlayR id = do
             <div .modal-content>
                 <div .modal-header>
                     <button .close type="button" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;
+                        <span aria-hidden="true">&times;
                 <div .modal-body.row>
                     <div .col-md-3>
                         <img style="height: 250px" src=@{BookCoverR (bookId $ fst book)}>
                     <div .col-md-9>
                         <h4> #{ abTitle book }
+                        <button type="button" .btn.btn-primary> Copy RSS link
+                        <button type="button" .btn.btn-primary> Download MP3
 
         |]
