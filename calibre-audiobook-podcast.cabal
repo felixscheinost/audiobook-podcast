@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2c7f392ad259d63a4e223ae36460a65af3c7b15af808b05714a3251fd1089805
+-- hash: 774bad463e4b5bf4dbf99258ff606c94089ff677b682839163d74e7aadbce3f8
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -13,6 +13,7 @@ build-type:     Simple
 library
   exposed-modules:
       Application
+      Audiobook
       Controllers.Book
       Controllers.Home
       Database.Calibre
@@ -24,6 +25,7 @@ library
       Import.NoFoundation
       Settings
       Settings.StaticFiles
+      Zip
   other-modules:
       Paths_calibre_audiobook_podcast
   hs-source-dirs:
@@ -33,12 +35,17 @@ library
     , base
     , beam-core
     , beam-sqlite
+    , binary
+    , bytestring
     , classy-prelude-yesod
+    , conduit
+    , containers
     , directory
     , fast-logger
     , filepath
     , mime-types
     , monad-logger
+    , natural-sort
     , optparse-applicative
     , shakespeare
     , sqlite-simple
@@ -52,6 +59,7 @@ library
     , yesod
     , yesod-core
     , yesod-static
+    , zip
   default-language: Haskell2010
 
 executable calibre-audiobook-podcast
@@ -66,13 +74,18 @@ executable calibre-audiobook-podcast
     , base
     , beam-core
     , beam-sqlite
+    , binary
+    , bytestring
     , calibre-audiobook-podcast
     , classy-prelude-yesod
+    , conduit
+    , containers
     , directory
     , fast-logger
     , filepath
     , mime-types
     , monad-logger
+    , natural-sort
     , optparse-applicative
     , shakespeare
     , sqlite-simple
@@ -86,4 +99,5 @@ executable calibre-audiobook-podcast
     , yesod
     , yesod-core
     , yesod-static
+    , zip
   default-language: Haskell2010

@@ -5,9 +5,9 @@
 
 module Database.Calibre (
     libraryPath,
-    possibleAudiobookFormats,
-    abCover,
-    abTitle,
+    bookCover,
+    bookFullPath,
+    BookAndData,
     module Database.Calibre.Types,
     module Database.Calibre.Tables,
     module Database.Calibre.Queries
@@ -25,18 +25,15 @@ import           System.FilePath          (replaceFileName, (<.>), (</>))
 libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
 
-type Audiobook = (Book, Data)
+type BookAndData = (CalibreBook, CalibreBookData)
 
-abTitle :: Audiobook -> Text
-abTitle = bookTitle . fst
-
-abFullPath :: Audiobook -> Handler FilePath
-abFullPath (book, bookData) = do
+bookFullPath :: BookAndData -> Handler FilePath
+bookFullPath (book, bookData) = do
     app <- getYesod
     return $ appCalibreLibraryFolder (appSettings app)
         </> T.unpack (bookPath book)
         </> T.unpack (dataName bookData)
         <.> T.unpack (toFileExtension $ dataFormat bookData)
 
-abCover :: Audiobook -> Handler FilePath
-abCover ab = (`replaceFileName` "cover.jpg") <$> abFullPath ab
+bookCover :: BookAndData -> Handler FilePath
+bookCover ab = (`replaceFileName` "cover.jpg") <$> bookFullPath ab

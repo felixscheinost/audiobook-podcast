@@ -16,65 +16,47 @@ import           Database.Beam.Sqlite
 import           Database.Calibre.Types
 import           Import
 
-data BookT f = Book
+data CalibreBookT f = CalibreBook
     { bookId    :: Columnar f Int
     , bookPath  :: Columnar f Text
     , bookTitle :: Columnar f Text
     } deriving Generic
 
-type Book = BookT Identity
-type BookId = PrimaryKey BookT Identity
+type CalibreBook = CalibreBookT Identity
+type CalibreBookId = PrimaryKey CalibreBookT Identity
 
-deriving instance Show Book
-deriving instance Eq Book
-deriving instance Show BookId
+deriving instance Show CalibreBook
+deriving instance Eq CalibreBook
+deriving instance Show CalibreBookId
 
-instance Beamable BookT
-instance Table BookT where
-    data PrimaryKey BookT f = BookId (Columnar f Int) deriving Generic
-    primaryKey = BookId . bookId
-instance Beamable (PrimaryKey BookT)
+instance Beamable CalibreBookT
+instance Table CalibreBookT where
+    data PrimaryKey CalibreBookT f = CalibreBookId (Columnar f Int) deriving Generic
+    primaryKey = CalibreBookId . bookId
+instance Beamable (PrimaryKey CalibreBookT)
 
-data AuthorT f = Author
-    { authorId   :: Columnar f Int
-    , authorName :: Columnar f Text
-    } deriving Generic
-
-type Author = AuthorT Identity
-type AuthorId = PrimaryKey AuthorT Identity
-
-instance Beamable AuthorT
-instance Beamable (PrimaryKey AuthorT)
-deriving instance Show Author
-deriving instance Show AuthorId
-
-instance Table AuthorT where
-    data PrimaryKey AuthorT f = AuthorId (Columnar f Int) deriving Generic
-    primaryKey = AuthorId . authorId
-
-data DataT f = Data
+data CalibreBookDataT f = CalibreBookData
     { dataId     :: Columnar f Int
-    , dataFormat :: Columnar f AudiobookFormat
+    , dataFormat :: Columnar f CalibreBookFormat
     , dataName   :: Columnar f Text
-    , dataBook   :: PrimaryKey BookT f
+    , dataBook   :: PrimaryKey CalibreBookT f
     } deriving Generic
 
-type Data = DataT Identity
-type DataId = PrimaryKey DataT Identity
+type CalibreBookData = CalibreBookDataT Identity
+type CalibreBookDataId = PrimaryKey CalibreBookDataT Identity
 
-instance Beamable DataT
-instance Beamable (PrimaryKey DataT)
-deriving instance Show Data
-deriving instance Show DataId
+instance Beamable CalibreBookDataT
+instance Beamable (PrimaryKey CalibreBookDataT)
+deriving instance Show CalibreBookData
+deriving instance Show CalibreBookDataId
 
-instance Table DataT where
-    data PrimaryKey DataT f = DataId (Columnar f Int) deriving Generic
-    primaryKey = DataId . dataId
+instance Table CalibreBookDataT where
+    data PrimaryKey CalibreBookDataT f = CalibreBookDataId (Columnar f Int) deriving Generic
+    primaryKey = CalibreBookDataId . dataId
 
 data CalibreDb f = CalibreDb
-    { cbBooks   :: f (TableEntity BookT)
-    , cbAuthors :: f (TableEntity AuthorT)
-    , cbData   :: f (TableEntity DataT)
+    { cbBooks   :: f (TableEntity CalibreBookT)
+    , cbData   :: f (TableEntity CalibreBookDataT)
     } deriving Generic
 
 instance Database be CalibreDb
@@ -83,6 +65,5 @@ calibreDb :: DatabaseSettings be CalibreDb
 calibreDb = defaultDbSettings
             `withDbModification` dbModification {
                 cbBooks = modifyTable (const "books") tableModification,
-                cbAuthors = modifyTable (const "authors") tableModification,
-                cbData = modifyTable (const "data") $ Data "id" "format" "name" (BookId "book")
+                cbData = modifyTable (const "data") $ CalibreBookData "id" "format" "name" (CalibreBookId "book")
             }                

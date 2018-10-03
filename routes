@@ -7,3 +7,4 @@
 /                   HomeR           GET
 /book/#Int/cover    BookCoverR      GET
 /book/#Int/overlay  BookOverlayR    GET
+/book/#Int/raw/#Int BookRawFileR    GET

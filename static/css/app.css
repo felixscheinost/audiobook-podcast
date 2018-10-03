@@ -7,8 +7,7 @@ body {
 }
 
 #search-container {
-    margin: 15px;
-    background-color:red
+    margin: 15px 0;
 }
 
 #search-container input {
@@ -17,12 +16,10 @@ body {
 
 #audiobook-container {
     margin: 0 15px;
-    background-color: blue;
 }
 
 .audiobook {
     padding: 0;
-    border: 1px solid white;
     margin-bottom: 15px;
 }
 

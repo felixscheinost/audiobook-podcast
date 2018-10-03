@@ -25,6 +25,12 @@ dependencies:
 - mime-types
 - transformers
 - directory
+- zip
+- natural-sort
+- containers
+- bytestring
+- conduit
+- binary
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
