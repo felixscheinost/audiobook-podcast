@@ -21,6 +21,8 @@ import           Database.SQLite.Simple.Ok
 data CalibreBookFormat
     = ZIP
     | MP3 
+    | M4A
+    | M4B
     deriving (Show, Enum, Eq)
 
 supportedCalibreBookFormats :: [CalibreBookFormat]
