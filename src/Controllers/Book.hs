@@ -5,16 +5,16 @@
 module Controllers.Book where
 
 import           Audiobook
+import qualified Codec.Archive.Zip   as Z
 import qualified Data.Binary.Builder as BSB
 import           Data.Conduit        (Flush (..))
 import qualified Data.Text           as T
 import           Database.Calibre
 import           Import
 import           Network.Mime        (defaultMimeLookup)
+import           Prelude             ((!!))
 import           System.FilePath     (takeFileName)
 import           Zip                 (getSingleFile)
-import Prelude ((!!))
-import qualified Codec.Archive.Zip as Z
 
 getBook :: Int -> Handler BookAndData
 getBook id = do
@@ -29,8 +29,7 @@ sendFileMime fp = do
     sendFile mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
-getBookCoverR id = do
-    getBook id >>= bookCover >>= sendFileMime
+getBookCoverR id = getBook id >>= bookCover >>= sendFileMime
 
 getBookRawFileR :: Int -> Int -> Handler TypedContent
 getBookRawFileR id fileIndex = do

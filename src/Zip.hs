@@ -3,14 +3,14 @@ module Zip (
     getSingleFile
 ) where
 
-import qualified Algorithms.NaturalSort as NS
-import qualified Codec.Archive.Zip      as Z
-import           Control.Monad.IO.Class (MonadIO)
-import           Data.ByteString        (ByteString)
-import           Data.Conduit           (ConduitT)
-import           Data.List              (sortBy)
-import qualified Data.Map               as M
-import Import (Handler, MonadThrow, MonadResource, PrimMonad)
+import qualified Algorithms.NaturalSort       as NS
+import qualified Codec.Archive.Zip            as Z
+import           Control.Monad.IO.Class       (MonadIO)
+import           Data.ByteString              (ByteString)
+import           Data.Conduit                 (ConduitT)
+import           Data.List                    (sortBy)
+import qualified Data.Map                     as M
+import           Import                       (Handler)
 
 getFiles :: MonadIO m => FilePath -> m [FilePath]
 getFiles fp = Z.withArchive fp (processKeys <$> Z.getEntries)

@@ -26,8 +26,12 @@ body {
 .audiobook img {
     display: block;
     margin: 0 auto;
+    border: 2px solid transparent;
+    border-radius: 4px;
 }
 
 .audiobook img:hover {
-    cursor: pointer
+    cursor: pointer;
+    border-color: gray;
+    box-sizing: border-box;
 }
