@@ -31,22 +31,18 @@ sendFileMime fp = do
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR id = getBook id >>= bookCover >>= sendFileMime
 
-getBookRawFileR :: Int -> Int -> Handler TypedContent
-getBookRawFileR id fileIndex = do
+getBookRawFileR :: Int -> Text -> Handler TypedContent
+getBookRawFileR id zipFilePath = do
     abTypeErr <- getBook id >>= getAudiobookType
     case abTypeErr of
-        Left _ -> invalidArgs ["Book has no valid audio files"]
+        Left err -> invalidArgs [T.pack $ show err]
         Right abType -> case abType of
             SingleFile _ path ->
                 sendFileMime path
-            Zip _ zipPath filePaths ->
-                if fileIndex < 0 || fileIndex >= length filePaths then
-                    invalidArgs ["No audio file with that index"]
-                else do
-                    let fp = filePaths !! fileIndex
-                    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
-                    conduit <- liftIO $ getSingleFile zipPath fp
-                    respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
+            Zip _ zipPath filePaths -> do
+                let mime = defaultMimeLookup zipFilePath
+                conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
+                respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
 
 
 getBookOverlayR :: Int -> Handler Html
