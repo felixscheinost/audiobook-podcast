@@ -17,32 +17,26 @@ import           System.FilePath     (takeFileName)
 import           Zip                 (getSingleFile)
 
 getBook :: Int -> Handler BookAndData
-getBook id = do
-    bookQueryResult <- runSQL (getAudiobook id)
-    case bookQueryResult of
-        Just book -> return book
-        _         -> notFound
+getBook id = runSQL (getAudiobook id) >>= maybe notFound return
 
 sendFileMime :: FilePath -> Handler TypedContent
-sendFileMime fp = do
-    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
-    sendFile mime fp
+sendFileMime = sendFile <$> defaultMimeLookup . T.pack . takeFileName <*> id
 
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR id = getBook id >>= bookCover >>= sendFileMime
 
 getBookRawFileR :: Int -> Text -> Handler TypedContent
 getBookRawFileR id zipFilePath = do
-    abTypeErr <- getBook id >>= getAudiobookType
-    case abTypeErr of
-        Left err -> invalidArgs [T.pack $ show err]
-        Right abType -> case abType of
-            SingleFile _ path ->
-                sendFileMime path
-            Zip _ zipPath filePaths -> do
-                let mime = defaultMimeLookup zipFilePath
-                conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
-                respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
+    abType <- getBook id 
+        >>= getAudiobookType
+        >>= either (invalidArgs . (:[]) . T.pack . show) return
+    case abType of
+        SingleFile _ path ->
+            sendFileMime path
+        Zip _ zipPath filePaths -> do
+            let mime = defaultMimeLookup zipFilePath
+            conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
+            respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
 
 
 getBookOverlayR :: Int -> Handler Html

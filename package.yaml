@@ -37,6 +37,13 @@ dependencies:
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
+  ghc-options:
+    #- -Wall 
+    #- -Wcompat 
+    #- -Wincomplete-record-updates 
+    #- -Wincomplete-uni-patterns 
+    #- -Wredundant-constraints
+    - -O
 
 # Runnable executable for our application
 executables:
