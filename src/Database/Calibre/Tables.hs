@@ -12,7 +12,6 @@
 module Database.Calibre.Tables where
 
 import           Database.Beam
-import           Database.Beam.Sqlite
 import           Database.Calibre.Types
 import           Import
 

@@ -6,10 +6,9 @@
 
 module Database.Calibre.Types where
 
-import           Control.Applicative              (empty, (<|>))
 import           Data.Foldable                    (asum)
-import           Data.List                        (find)
-import           Data.Text                        (Text, pack, toLower, unpack)
+import qualified Data.Text as T
+import           Data.Text                        (Text)
 import           Database.Beam
 import           Database.Beam.Backend.SQL
 import           Database.Beam.Sqlite             (Sqlite)
@@ -29,12 +28,12 @@ supportedCalibreBookFormats :: [CalibreBookFormat]
 supportedCalibreBookFormats = enumFrom $ toEnum 0
 
 toFileExtension :: CalibreBookFormat -> Text
-toFileExtension = toLower . pack . show
+toFileExtension = T.toLower . T.pack . show
 
 instance FromField CalibreBookFormat where
     fromField f@(Field (SQLText t) _) =
         asum $ flip map supportedCalibreBookFormats $ \format ->
-            if pack (show format) == t then
+            if T.pack (show format) == t then
                 Ok format
             else
                 returnError ConversionFailed f "unrecognized book format"
@@ -43,6 +42,6 @@ instance FromField CalibreBookFormat where
 instance FromBackendRow Sqlite CalibreBookFormat
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be CalibreBookFormat where
-    sqlValueSyntax = sqlValueSyntax . pack . show
+    sqlValueSyntax = sqlValueSyntax . T.pack . show
 
 instance (IsSql92ExpressionSyntax be) => HasSqlEqualityCheck be CalibreBookFormat

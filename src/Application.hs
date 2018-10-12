@@ -7,7 +7,8 @@
 
 module Application where
 
-import           Control.Monad.Logger                 (liftLoc, runLoggingT)
+import           Control.Monad.Logger                 (liftLoc)
+import           Database.Calibre
 import qualified Database.SQLite.Simple               as Sql
 import           Import
 import           Language.Haskell.TH.Syntax           (qLocation)
@@ -15,16 +16,14 @@ import           Network.Wai                          (Middleware)
 import           Network.Wai.Handler.Warp             (Settings,
                                                        defaultSettings,
                                                        defaultShouldDisplayException,
-                                                       getPort, runSettings,
-                                                       setHost, setOnException,
-                                                       setPort)
+                                                       runSettings,
+                                                       setOnException, setPort)
 import           Network.Wai.Middleware.RequestLogger (Destination (Logger),
                                                        IPAddrSource (..),
                                                        OutputFormat (..),
                                                        destination,
                                                        mkRequestLogger,
                                                        outputFormat)
-import           Database.Calibre
 import           System.Log.FastLogger                (defaultBufSize,
                                                        newStdoutLoggerSet,
                                                        toLogStr)
@@ -89,7 +88,4 @@ develMain = develMainHelper $ do
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
-appMain = do 
-    (warpSettings, app) <- getAppAndWarpSettings
-    
-    runSettings warpSettings app
+appMain = getAppAndWarpSettings >>= uncurry runSettings

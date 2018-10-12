@@ -7,10 +7,8 @@
 module Foundation where
 
 import           Control.Concurrent.MVar    (MVar)
-import           Control.Monad.Trans.Reader (runReader)
 import qualified Database.SQLite.Simple     as Sql
 import           Import.NoFoundation
-import           System.FilePath            ((</>))
 import           Text.Hamlet                (hamletFile)
 import           Yesod.Core.Types           (Logger)
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f95cedfdff36646574968aa0c206ab2d044bd40ace021e50810f249f11a63ac2
+-- hash: 0395307c935e69624399e7a75c945ed1e5299d3f7d6d2c94fef32b63ea36163e
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -30,6 +30,7 @@ library
       Paths_calibre_audiobook_podcast
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -O
   build-depends:
       aeson
     , base
@@ -39,6 +40,7 @@ library
     , bytestring
     , classy-prelude-yesod
     , conduit
+    , conduit-extra
     , containers
     , directory
     , exceptions
@@ -47,10 +49,11 @@ library
     , mime-types
     , monad-logger
     , natural-sort
-    , optparse-applicative
+    , process
     , shakespeare
     , sqlite-simple
     , template-haskell
+    , temporary
     , text
     , transformers
     , wai
@@ -80,6 +83,7 @@ executable calibre-audiobook-podcast
     , calibre-audiobook-podcast
     , classy-prelude-yesod
     , conduit
+    , conduit-extra
     , containers
     , directory
     , exceptions
@@ -88,10 +92,11 @@ executable calibre-audiobook-podcast
     , mime-types
     , monad-logger
     , natural-sort
-    , optparse-applicative
+    , process
     , shakespeare
     , sqlite-simple
     , template-haskell
+    , temporary
     , text
     , transformers
     , wai

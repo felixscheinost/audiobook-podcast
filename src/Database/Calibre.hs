@@ -15,7 +15,6 @@ module Database.Calibre (
 
 import qualified Data.Text                as T
 import           Database.Beam
-import           Database.Beam.Sqlite
 import           Database.Calibre.Queries
 import           Database.Calibre.Tables
 import           Database.Calibre.Types

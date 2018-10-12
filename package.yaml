@@ -6,7 +6,6 @@ dependencies:
 - base
 - classy-prelude-yesod 
 - filepath
-- optparse-applicative
 - shakespeare
 - warp
 - template-haskell
@@ -30,19 +29,22 @@ dependencies:
 - containers
 - bytestring
 - conduit
+- conduit-extra
 - binary
 - exceptions
+- temporary
+- process
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
   ghc-options:
-    #- -Wall 
-    #- -Wcompat 
-    #- -Wincomplete-record-updates 
-    #- -Wincomplete-uni-patterns 
-    #- -Wredundant-constraints
+    - -Wall 
+    - -Wcompat 
+    - -Wincomplete-record-updates 
+    - -Wincomplete-uni-patterns 
+    - -Wredundant-constraints
     - -O
 
 # Runnable executable for our application

@@ -7,7 +7,6 @@ import Database.Calibre.Types
 import Database.Beam
 import Database.Beam.Sqlite
 import Database.SQLite.Simple (Connection)
-import Yesod.Core
 
 joinBookAndData = do
     b <- all_ (cbBooks calibreDb)

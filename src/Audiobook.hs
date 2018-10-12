@@ -1,19 +1,24 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
 module Audiobook where
 
 import           Conduit                 (ConduitT)
 import qualified Conduit                 as CDT
+import           Control.Monad.Catch     (throwM)
 import           Data.Char               (toLower)
-import           Data.Maybe              (catMaybes, isJust)
-import           Database.Calibre        (BookAndData, bookFullPath)
+import           Data.Conduit.Process    (ClosedStream (..), Inherited (..),
+                                          proc, streamingProcess)
+import           Data.Either             (either)
+import qualified Data.Text               as T
+import           Database.Calibre        (BookAndData, bookFullPath, bookId)
 import           Database.Calibre.Tables (dataFormat)
 import qualified Database.Calibre.Types  as C
 import           Import                  hiding (toLower)
 import           System.FilePath         (takeExtension)
+import qualified System.IO.Temp          as TMP
 import           Zip                     as Z
-import Control.Monad.Catch (throwM)
 
 data AudioFormat
     = Mp3
@@ -37,7 +42,7 @@ data AudiobookType
     | SingleFile AudioFormat FilePath
     deriving (Eq)
 
-data AudiobookError 
+data AudiobookError
     = NoSupportedAudiobooksInZip
     | ZipContainsMultipleFormats
     | UnsupportedFormat
@@ -62,16 +67,37 @@ getAudiobookType book =
                 (x:xs) ->
                     case partition ((== snd x) . snd) xs of
                         -- make sure ZIP contains only supported files of one format
-                        (files, []) -> return $ Right $ Zip (snd x) fullPath (map fst (x:xs))
+                        (files, []) -> return $ Right $ Zip (snd x) fullPath (map fst files)
                         _ -> return $ Left ZipContainsMultipleFormats
-        _     -> return $ Left UnsupportedFormat 
+        _     -> return $ Left UnsupportedFormat
 
 getAudiobookMp3 :: BookAndData -> Handler (ConduitT () ByteString Handler ())
 getAudiobookMp3 book = do
-    audiobookTypeEither <- getAudiobookType book
-    audiobookType <- case audiobookTypeEither of 
-        Left err -> throwM err
-        Right abType -> return abType
+    audiobookType <- getAudiobookType book >>= either throwM return
     case audiobookType of
-        SingleFile Mp3 path -> return $ CDT.sourceFile path
+        SingleFile Mp3 filePath   -> return $ CDT.sourceFile filePath
+        Zip Mp3 _ files -> do
+            urlRender <- getUrlRender
+            let urls = map (urlRender . BookRawFileR (bookId $ fst book) . T.pack) files
+            let escape = T.replace "'" "'\''"
+            let lineFor url = T.concat ["file '", escape url, "'"]
+            let fileContents = T.intercalate "\n" $ map lineFor urls
+            tempFile <- liftIO $ TMP.writeSystemTempFile "calibre-audiobook-ffmpeg" $ T.unpack fileContents
+            let cmd = proc "ffmpeg" 
+                    [ "-f", "concat"
+                    , "-safe", "0"
+                    , "-protocol_whitelist", "file,tcp,http"
+                    , "-i", tempFile
+                    , "-c", "copy"
+                    , "-f", "mp3"
+                    , "-"
+                    ]
+            -- todo: handle non-zero return code as HTTP error
+            liftIO $ print tempFile 
+            (ClosedStream, fromProcess, Inherited, _) <- liftIO $ streamingProcess cmd
+            return fromProcess
 
+
+
+--ffmpegJoinFiles :: [String] -> Handler (Either String (ConduitT i ByteString Handler ()))
+--ffmpegJoinFiles files
