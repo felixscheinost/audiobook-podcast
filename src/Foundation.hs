@@ -14,7 +14,7 @@ import           Yesod.Core.Types           (Logger)
 
 data App = App
     { appSettings     :: AppSettings
-    , appStatic       :: Static
+    , appStatic       :: EmbeddedStatic
     , appLogger       :: Logger
     , appDbConnection :: MVar Sql.Connection
     }

@@ -42,7 +42,7 @@ mkYesodDispatch "App" resourcesApp
 -- performs initialization and returns a foundation datatype value.
 makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
-    appStatic <- static "static"
+    let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
     return $ App {..}

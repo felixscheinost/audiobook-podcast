@@ -3,7 +3,10 @@
 {-# LANGUAGE TemplateHaskell   #-}
 module Settings.StaticFiles where
 
-import Yesod.Static (staticFiles)
+--import Yesod.Static (staticFiles)
+import Yesod.EmbeddedStatic (mkEmbeddedStatic)
+import Yesod.EmbeddedStatic.Generators (embedDir)
+import Prelude (Bool(False))
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
@@ -17,4 +20,6 @@ import Yesod.Static (staticFiles)
 -- If the identifier is not available, you may use:
 --
 --     StaticFile ["js", "script.js"] []
-staticFiles "static"
+-- staticFiles "static"
+
+mkEmbeddedStatic False "myStatic" [embedDir "static"]
