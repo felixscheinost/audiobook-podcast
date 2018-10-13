@@ -1,9 +1,10 @@
-{-# LANGUAGE InstanceSigs      #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module Foundation where
 
 import           Control.Concurrent.MVar    (MVar)
@@ -20,6 +21,7 @@ data App = App
     }
 
 mkYesodData "App" $(parseRoutesFile "routes")
+mkMessage "App" "messages" "en"
 
 instance Yesod App where
     defaultLayout :: Widget -> Handler Html

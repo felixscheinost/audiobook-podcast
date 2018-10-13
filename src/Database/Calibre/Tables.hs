@@ -19,6 +19,8 @@ data CalibreBookT f = CalibreBook
     { bookId    :: Columnar f Int
     , bookPath  :: Columnar f Text
     , bookTitle :: Columnar f Text
+    , bookSort :: Columnar f Text
+    , bookSeriesIndex :: Columnar f Float
     } deriving Generic
 
 type CalibreBook = CalibreBookT Identity

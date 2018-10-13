@@ -5,6 +5,11 @@
 /static         StaticR     EmbeddedStatic      appStatic
 
 /                      HomeR           GET
+
+/books                 BookViewR       GET
+/authors               AuthorViewR     GET
+/series                SeriesViewR     GET
+
 /book/#Int/cover       BookCoverR      GET
 /book/#Int/overlay     BookOverlayR    GET
 /book/#Int/raw/#Text   BookRawFileR    GET

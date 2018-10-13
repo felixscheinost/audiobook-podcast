@@ -22,4 +22,5 @@ getAudiobook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select 
 
 getAllAudiobooks :: Connection -> IO [(CalibreBook, CalibreBookData)]
 getAllAudiobooks conn = runBeamSqlite conn $ runSelectReturningList $ select $ 
-    orderBy_ (asc_ . bookTitle . fst) joinBookAndData
+    orderBy_ (\(book, _) -> asc_ $ bookSort book)
+        joinBookAndData
