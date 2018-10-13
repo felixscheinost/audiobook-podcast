@@ -1,4 +1,6 @@
 .vscode
+client_session_key.aes
+logs
 
 dist*
 static/tmp/

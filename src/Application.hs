@@ -18,12 +18,9 @@ import           Network.Wai.Handler.Warp             (Settings,
                                                        defaultShouldDisplayException,
                                                        runSettings,
                                                        setOnException, setPort)
-import           Network.Wai.Middleware.RequestLogger (Destination (Logger),
-                                                       IPAddrSource (..),
-                                                       OutputFormat (..),
-                                                       destination,
-                                                       mkRequestLogger,
-                                                       outputFormat)
+import           Network.Wai.Middleware.Gzip          (def, gzip)
+import           Network.Wai.Middleware.RequestLogger (logStdout,
+                                                       logStdoutDev)
 import           System.Log.FastLogger                (defaultBufSize,
                                                        newStdoutLoggerSet,
                                                        toLogStr)
@@ -53,14 +50,17 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- makeLogWare foundation
     appPlain <- toWaiAppPlain foundation
-    return $ logWare $ defaultMiddlewaresNoLogging appPlain
+    return $ 
+        gzip def $
+        logWare $ 
+        defaultMiddlewaresNoLogging appPlain
 
 makeLogWare :: App -> IO Middleware
 makeLogWare foundation =
-    mkRequestLogger def
-        { outputFormat = Apache FromSocket
-        , destination = Logger $ loggerSet $ appLogger foundation
-        }
+    if appDevelopment $ appSettings foundation then
+        return logStdoutDev
+    else
+        return logStdout
 
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings

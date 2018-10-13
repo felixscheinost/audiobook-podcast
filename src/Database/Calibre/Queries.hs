@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Database.Calibre.Queries where
 
