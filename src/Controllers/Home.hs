@@ -43,8 +43,8 @@ searchBarWidget = do
 
 getBookViewR :: Handler Html
 getBookViewR = do
-    books <- runSQL getAllAudiobooks
     searchBar <- searchBarWidget
+    books <- runSQL getAllAudiobooks
     defaultLayout [whamlet|
         ^{searchBar} 
         <div .row #audiobook-container>
@@ -55,8 +55,8 @@ getBookViewR = do
 
 getAuthorViewR :: Handler Html
 getAuthorViewR = do
-    books <- runSQL getAllAudiobooks
     searchBar <- searchBarWidget
+    books <- runSQL getAllAudiobooks
     defaultLayout [whamlet|
         ^{searchBar} 
         <div .row #audiobook-container>
@@ -68,14 +68,15 @@ getAuthorViewR = do
 
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
-    books <- runSQL getAllAudiobooks
     searchBar <- searchBarWidget
+    seriesWithBooks <- runSQL getAllSeries
     defaultLayout [whamlet|
         ^{searchBar} 
         <div .row #audiobook-container>
-            $forall (book, _) <- books
-                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId book)}>
-                    <img style="height: 250px" src=@{BookCoverR (bookId book)}>
+            <ul>
+                $forall re <- seriesWithBooks
+                    <li> #{ show re }
+                    
     |]
 
 
