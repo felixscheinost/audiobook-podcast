@@ -1,12 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE CPP               #-}
 module Settings.StaticFiles where
 
 --import Yesod.Static (staticFiles)
 import Yesod.EmbeddedStatic (mkEmbeddedStatic)
 import Yesod.EmbeddedStatic.Generators (embedDir)
-import Prelude (Bool(False))
+import Prelude (Bool(..))
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
@@ -22,4 +23,8 @@ import Prelude (Bool(False))
 --     StaticFile ["js", "script.js"] []
 -- staticFiles "static"
 
+#ifdef DEVELOPMENT
+mkEmbeddedStatic True "myStatic" [embedDir "static"]
+#else
 mkEmbeddedStatic False "myStatic" [embedDir "static"]
+#endif

@@ -24,8 +24,8 @@ mkYesodData "App" $(parseRoutesFile "routes")
 instance Yesod App where
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
-        pc <- widgetToPageContent widget
-        withUrlRenderer $(hamletFile "templates/default-layout.hamlet")
+        pc <- widgetToPageContent $(widgetFileReload def "default-layout")
+        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 runSQL :: (Sql.Connection -> IO a) -> Handler a
 runSQL f = do

@@ -5,14 +5,14 @@
 module Controllers.Book where
 
 import           Audiobook
-import qualified Data.Binary.Builder as BSB
-import           Data.Conduit        (Flush (..))
-import qualified Data.Text           as T
+import qualified Data.Binary.Builder             as BSB
+import           Data.Conduit                    (Flush (..))
+import qualified Data.Text                       as T
 import           Database.Calibre
 import           Import
-import           Network.Mime        (defaultMimeLookup)
-import           System.FilePath     (takeFileName)
-import           Zip                 (getSingleFile)
+import           Network.Mime                    (defaultMimeLookup)
+import           System.FilePath                 (takeFileName)
+import           Zip                             (getSingleFile)
 
 getBook :: Int -> Handler BookAndData
 getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
@@ -25,7 +25,7 @@ getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
 
 getBookRawFileR :: Int -> Text -> Handler TypedContent
 getBookRawFileR _id zipFilePath = do
-    abType <- getBook _id 
+    abType <- getBook _id
         >>= getAudiobookType
         >>= either (invalidArgs . (:[]) . T.pack . show) return
     case abType of
@@ -44,7 +44,7 @@ getBookMp3FileR _id = do
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
     book <- getBook _id
-    defaultLayout [whamlet|
+    withUrlRenderer [hamlet|
         <div .modal-content>
             <div .modal-header>
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
