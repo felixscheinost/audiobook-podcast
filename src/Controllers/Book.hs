@@ -5,36 +5,56 @@
 module Controllers.Book where
 
 import           Audiobook
-import qualified Data.Binary.Builder             as BSB
-import           Data.Conduit                    (Flush (..))
-import qualified Data.Text                       as T
+import qualified Data.Binary.Builder as BSB
+import           Data.Conduit        (Flush (..))
+import qualified Data.Text           as T
 import           Database.Calibre
 import           Import
-import           Network.Mime                    (defaultMimeLookup)
-import           System.FilePath                 (takeFileName)
-import           Zip                             (getSingleFile)
+import           Network.Mime        (defaultMimeLookup)
+import qualified Network.Wai         as WAI
+import           System.FilePath     (takeFileName)
+import           System.IO           (IOMode(ReadMode))
+import           Zip                 (getSingleFile)
 
 getBook :: Int -> Handler BookAndData
 getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
 
 sendFileMime :: FilePath -> Handler TypedContent
-sendFileMime = sendFile <$> defaultMimeLookup . T.pack . takeFileName <*> id
+sendFileMime fp = do
+    --fs <- withFile fp ReadMode hFileSize
+    --replaceOrAddHeader "Content-Length" $ T.pack $ show fs
+    --liftIO $ putStrLn $ T.pack $ "size " ++ show fs
+    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
+    sendFile mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
 
-getBookRawFileR :: Int -> Text -> Handler TypedContent
-getBookRawFileR _id zipFilePath = do
+
+getBookRawFileR :: Int -> Handler TypedContent
+getBookRawFileR _id = do
+    abType <- getBook _id
+        >>= getAudiobookType
+        >>= either (invalidArgs . (:[]) . T.pack . show) return
+    --WAI.requestHeaders <$> waiRequest >>= liftIO . print
+    case abType of
+        SingleFile _ filePath ->
+            sendFileMime filePath
+        _ ->
+            invalidArgs ["Not a single file"]
+
+getBookRawFileZipR :: Int -> Text -> Handler TypedContent
+getBookRawFileZipR _id zipFilePath = do
     abType <- getBook _id
         >>= getAudiobookType
         >>= either (invalidArgs . (:[]) . T.pack . show) return
     case abType of
-        SingleFile _ filePath ->
-            sendFileMime filePath
         Zip _ zipPath _ -> do
             let mime = defaultMimeLookup zipFilePath
             conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
             respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
+        _ ->
+            invalidArgs ["Not a ZIP file"]
 
 getBookMp3FileR :: Int -> Handler TypedContent
 getBookMp3FileR _id = do
@@ -47,11 +67,14 @@ getBookOverlayR _id = do
     withUrlRenderer [hamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{ bookTitle $ fst book }
+                <h5 .modal-title> #{ bookTitle $ fst book} (#{bookId $ fst book})
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
                 <img src=@{BookCoverR _id}>
-                <a .btn.btn-primary href="#"> Copy RSS link
-                <a .btn.btn-primary href=@{BookMp3FileR _id}> Download MP3
+                <div>
+                    <div .row>
+                        <a .btn.btn-primary href="#"> Copy RSS link
+                        <a .btn.btn-primary href=@{BookMp3FileR _id}> Download MP3
+                    <p>Format of source file: #{ show $ dataFormat $ snd book }
     |]

@@ -4,13 +4,15 @@
 
 /static         StaticR     EmbeddedStatic      appStatic
 
-/                      HomeR           GET
+/                             HomeR           GET
+       
+/books                        BookViewR       GET
+/authors                      AuthorViewR     GET
+/series                       SeriesViewR     GET
+       
+/book/#Int/cover              BookCoverR      GET
+/book/#Int/overlay            BookOverlayR    GET
 
-/books                 BookViewR       GET
-/authors               AuthorViewR     GET
-/series                SeriesViewR     GET
-
-/book/#Int/cover       BookCoverR      GET
-/book/#Int/overlay     BookOverlayR    GET
-/book/#Int/raw/#Text   BookRawFileR    GET
-/book/#Int/mp3         BookMp3FileR    GET
+/book/#Int/raw                BookRawFileR    GET
+/book/#Int/rawFromZip/#Text   BookRawFileZipR GET
+/book/#Int/mp3                BookMp3FileR    GET
