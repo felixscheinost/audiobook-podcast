@@ -47,13 +47,11 @@ getBookOverlayR _id = do
     withUrlRenderer [hamlet|
         <div .modal-content>
             <div .modal-header>
+                <h5 .modal-title> #{ bookTitle $ fst book }
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
-            <div .modal-body.row>
-                <div .col-md-3>
-                    <img style="height: 250px" src=@{BookCoverR _id}>
-                <div .col-md-9>
-                    <h4> #{ bookTitle $ fst book }
-                    <a .btn.btn-primary href="#"> Copy RSS link
-                    <a .btn.btn-primary href=@{BookMp3FileR _id}> Download MP3
+            <div .modal-body .book-modal>
+                <img src=@{BookCoverR _id}>
+                <a .btn.btn-primary href="#"> Copy RSS link
+                <a .btn.btn-primary href=@{BookMp3FileR _id}> Download MP3
     |]

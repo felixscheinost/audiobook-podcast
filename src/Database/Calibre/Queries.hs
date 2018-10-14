@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Database.Calibre.Queries where
@@ -33,12 +34,12 @@ getAllAudiobooks conn = runBeamSqlite conn $ runSelectReturningList $ select $ d
     d <- joinAudiobookData b
     return (b, d)
 
-getAllSeries :: Connection -> IO [(CalibreSeries, Maybe Text)]
-getAllSeries conn = runBeamSqliteDebug putStrLn conn $ runSelectReturningList $ select $
-    aggregate_ (\(series, book) -> (group_ series, sqliteGroupConcatOver distinctInGroup_ (bookId book))) $ do
-        s <- all_ (cbSeries calibreDb)
-        bs <- join_ (cbBooksSeries calibreDb) (\link -> bsSeries link ==. pk s)
-        b <- join_ (cbBooks calibreDb) (\book -> bsBook bs ==. pk book)
+getAllSeries :: Connection -> IO [(CalibreSeries, Text)]
+getAllSeries conn = runBeamSqliteDebug putStrLn conn $ runSelectReturningList $ select $ do
+    (s, bIds) <- aggregate_ (\(series, book) -> (group_ series, sqliteGroupConcatOver distinctInGroup_ (bookId book))) $ do
+        (s, b) <- seriesBookRelationship (all_ (cbSeries calibreDb)) (all_ (cbBooks calibreDb))
         d <- join_ (cbData calibreDb) (\_data -> dataBook _data ==. pk b)
         guard_ (dataFormat d `in_` map val_ supportedCalibreBookFormats)
         return (s, b)
+    return (s, fromMaybe_ (val_ "") bIds)
+

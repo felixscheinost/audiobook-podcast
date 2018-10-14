@@ -6,6 +6,8 @@ import Foundation
 import Yesod.Core
 import Database.Calibre
 import Data.List (find)
+import qualified Data.Text as T
+import qualified Data.Text.Read as TR
 
 data View = View (Route App) AppMessage
 
@@ -69,13 +71,18 @@ getAuthorViewR = do
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
     searchBar <- searchBarWidget
-    seriesWithBooks <- runSQL getAllSeries
+    seriesWithBookIds <- runSQL getAllSeries
     defaultLayout [whamlet|
         ^{searchBar} 
-        <div .row #audiobook-container>
-            <ul>
-                $forall re <- seriesWithBooks
-                    <li> #{ show re }
+        <div .row #series-container>
+            $forall (series, bookIds) <- seriesWithBookIds
+                <a href="#" .series .text-dark .text-center .font-weight-bold>
+                    $case take 1 $ map TR.decimal $ T.splitOn "," bookIds
+                        $of [(Right (bookId, _))]
+                            <img .img src=@{BookCoverR bookId}>
+                        $of _
+                            <div .img style="height: 250px; width: 158px">
+                    #{seriesName series}
                     
     |]
 
