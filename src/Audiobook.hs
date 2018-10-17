@@ -123,8 +123,6 @@ ffmpeg args = do
     let setup = do
             let cmd = (proc "ffmpeg" args) { std_err = NoStream }
             (ClosedStream, ffmpegStdout, UseProvidedHandle, streamingHandle) <- liftIO $ streamingProcess cmd
-            -- let cmd = proc "ffmpeg" args
-            -- (ClosedStream, ffmpegStdout, Inherited, streamingHandle) <- liftIO $ streamingProcess cmd
             return (ffmpegStdout, streamingHandle)
     -- TODO: handle non-zero return code as HTTP error
     return $ CDT.bracketP

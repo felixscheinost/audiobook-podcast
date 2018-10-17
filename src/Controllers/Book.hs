@@ -7,13 +7,14 @@ module Controllers.Book where
 import           Audiobook
 import qualified Data.Binary.Builder as BSB
 import           Data.Conduit        (Flush (..))
+import qualified Conduit        as CDT
 import qualified Data.Text           as T
 import           Database.Calibre
 import           Import
 import           Network.Mime        (defaultMimeLookup)
 import qualified Network.Wai         as WAI
 import           System.FilePath     (takeFileName)
-import           System.IO           (IOMode(ReadMode))
+import           System.IO           (IOMode (ReadMode))
 import           Zip                 (getSingleFile)
 
 getBook :: Int -> Handler BookAndData
@@ -21,11 +22,10 @@ getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
 
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
-    --fs <- withFile fp ReadMode hFileSize
-    --replaceOrAddHeader "Content-Length" $ T.pack $ show fs
-    --liftIO $ putStrLn $ T.pack $ "size " ++ show fs
+    fs <- withFile fp ReadMode hFileSize
+    replaceOrAddHeader "Content-Length" $ T.pack $ show fs
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
-    sendFile mime fp
+    respondSource mime $ mapOutput (Chunk . BSB.fromByteString) $ CDT.sourceFile fp
 
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
