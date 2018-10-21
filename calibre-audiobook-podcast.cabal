@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6f45c872b0901c505c3a6b213fd1571de978133e335472fec81ba9ae29622071
+-- hash: 9a743477633a78d198ef9f9969d620e0f6875d615dd0e30b031743b7a0aa169f
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -55,6 +55,7 @@ library
     , exceptions
     , fast-logger
     , filepath
+    , http-types
     , mime-types
     , monad-logger
     , natural-sort
@@ -103,6 +104,7 @@ executable calibre-audiobook-podcast
     , exceptions
     , fast-logger
     , filepath
+    , http-types
     , mime-types
     , monad-logger
     , natural-sort
