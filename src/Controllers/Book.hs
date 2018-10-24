@@ -7,18 +7,15 @@ module Controllers.Book where
 import           Audiobook
 import qualified Data.Binary.Builder as BSB
 import           Data.Conduit        (Flush (..))
-import Data.Maybe (fromMaybe)
-import qualified Conduit        as CDT
-import Data.Conduit.Binary (sourceFileRange)
+import           Data.Conduit.Binary (sourceFileRange)
 import qualified Data.Text           as T
 import           Database.Calibre
-import           Import
+import           Import hiding (count, fileSize)  
+import qualified Network.HTTP.Types  as HTTP
 import           Network.Mime        (defaultMimeLookup)
-import qualified Network.Wai         as WAI
 import           System.FilePath     (takeFileName)
 import           System.IO           (IOMode (ReadMode))
 import           Zip                 (getSingleFile)
-import qualified Network.HTTP.Types as HTTP
 
 getBook :: Int -> Handler BookAndData
 getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
@@ -44,19 +41,19 @@ sendFileMimeConduit :: FilePath -> Handler TypedContent
 sendFileMimeConduit fp = do
     fileSize <- withFile fp ReadMode hFileSize
     maybeByteRange <-  (>>= HTTP.parseByteRanges) <$> lookupHeader "Range"
-    (offset, count) <- case maybeByteRange of 
-            Just [ByteRangeFrom from] -> 
+    (offset, count) <- case maybeByteRange of
+            Just [ByteRangeFrom from] ->
                 checkRange fileSize (from, fileSize - from)
-            Just [ByteRangeFromTo from to] -> 
+            Just [ByteRangeFromTo from to] ->
                 checkRange fileSize (from, to - from + 1)
-            Just [ByteRangeSuffix to] -> 
+            Just [ByteRangeSuffix to] ->
                 checkRange fileSize (0, to + 1)
             Nothing -> return (0, fileSize)
             _ -> rangeNotSatisfiable
     replaceOrAddHeader "Content-Length" $ T.pack $ show count
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     respondSource mime $
-        mapOutput (Chunk . BSB.fromByteString) $ 
+        mapOutput (Chunk . BSB.fromByteString) $
             sourceFileRange fp (Just offset) (Just count)
 
 getBookCoverR :: Int -> Handler TypedContent

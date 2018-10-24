@@ -4,27 +4,31 @@
 
 module Audiobook where
 
-import           Conduit                 (ConduitT)
-import qualified Conduit                 as CDT
-import           Control.Monad.Catch     (throwM)
-import           Data.Char               (toLower)
-import           Data.Conduit.Process    (ClosedStream (..),
-                                          CreateProcess (std_err),
-                                          StdStream (..),
-                                          UseProvidedHandle (..), proc,
-                                          streamingProcess,
-                                          streamingProcessHandleRaw,
-                                          terminateProcess)
-import           Data.Either             (either)
-import qualified Data.Text               as T
-import           Database.Calibre        (BookAndData, bookFullPath, bookId)
-import           Database.Calibre.Tables (dataFormat)
-import qualified Database.Calibre.Types  as C
-import           Import                  hiding (toLower)
-import qualified System.Directory        as SYSDIR
-import           System.FilePath         (takeExtension)
-import qualified System.IO.Temp          as TMP
-import           Zip                     as Z
+import           Conduit                       (ConduitT)
+import qualified Conduit                       as CDT
+import           Control.Monad.Catch           (throwM)
+import qualified Data.ByteString               as B
+import           Data.ByteString.Lazy.Internal (defaultChunkSize)
+import           Data.Char                     (toLower)
+import           Data.Conduit.Process          (ClosedStream (..),
+                                                CreateProcess (std_err),
+                                                StdStream (..),
+                                                UseProvidedHandle (..), proc,
+                                                streamingProcess,
+                                                streamingProcessHandleRaw,
+                                                terminateProcess,
+                                                withCheckedProcessCleanup)
+import           Data.Either                   (either)
+import qualified Data.Text                     as T
+import           Database.Calibre              (BookAndData, bookFullPath,
+                                                bookId)
+import           Database.Calibre.Tables       (dataFormat)
+import qualified Database.Calibre.Types        as C
+import           Import                        hiding (toLower)
+import qualified System.Directory              as SYSDIR
+import           System.FilePath               (takeExtension)
+import qualified System.IO.Temp                as TMP
+import           Zip                           as Z
 
 data AudioFormat
     = Mp3
@@ -64,7 +68,7 @@ instance Show AudiobookError where
 
 instance Exception AudiobookError
 
-getAudiobookType :: BookAndData -> Handler (Either AudiobookError AudiobookType )
+getAudiobookType :: BookAndData -> Handler (Either AudiobookError AudiobookType)
 getAudiobookType book =
     case dataFormat $ snd book of
         C.MP3 -> Right . SingleFile Mp3 <$> bookFullPath book
@@ -118,12 +122,23 @@ getAudiobookMp3 book = do
                 (SYSDIR.removeFile . snd)
                 fst
 
+-- added this to always try to fill a chunk (if possible)
+sourceHandleNoSome :: MonadIO m => Handle -> ConduitT i ByteString m ()
+sourceHandleNoSome h =
+    loop
+    where
+    loop = do
+        bs <- liftIO (B.hGet h defaultChunkSize)
+        if B.null bs
+            then return ()
+            else yield bs >> loop
+
 ffmpeg :: [String] -> IO (ConduitT ()  ByteString Handler ())
 ffmpeg args = do
     let setup = do
             let cmd = (proc "ffmpeg" args) { std_err = NoStream }
-            (ClosedStream, ffmpegStdout, UseProvidedHandle, streamingHandle) <- liftIO $ streamingProcess cmd
-            return (ffmpegStdout, streamingHandle)
+            (ClosedStream, stdoutHandle, UseProvidedHandle, streamingHandle) <- liftIO $ streamingProcess cmd
+            return (sourceHandleNoSome stdoutHandle, streamingHandle)
     -- TODO: handle non-zero return code as HTTP error
     return $ CDT.bracketP
         setup

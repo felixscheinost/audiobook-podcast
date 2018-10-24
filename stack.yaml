@@ -35,13 +35,16 @@ resolver: lts-12.10
 #  - wai
 packages:
 - .
-- beam/beam-sqlite
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-#- beam-sqlite-0.3.2.3 
 - yesod-core-1.6.7
+- git: https://github.com/tathougies/beam
+  commit: 8ba7df07cb606830899277477b329ec4a62d2a7d
+  subdirs:
+    - beam-sqlite
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
