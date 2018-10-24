@@ -37,6 +37,11 @@ checkRange fileSize (offset, count)
 
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
+    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
+    sendFile mime fp
+
+sendFileMimeConduit :: FilePath -> Handler TypedContent
+sendFileMimeConduit fp = do
     fileSize <- withFile fp ReadMode hFileSize
     maybeByteRange <-  (>>= HTTP.parseByteRanges) <$> lookupHeader "Range"
     (offset, count) <- case maybeByteRange of 
@@ -63,10 +68,9 @@ getBookRawFileR _id = do
     abType <- getBook _id
         >>= getAudiobookType
         >>= either (invalidArgs . (:[]) . T.pack . show) return
-    --WAI.requestHeaders <$> waiRequest >>= liftIO . print
     case abType of
         SingleFile _ filePath ->
-            sendFileMime filePath
+            sendFileMimeConduit filePath
         _ ->
             invalidArgs ["Not a single file"]
 
