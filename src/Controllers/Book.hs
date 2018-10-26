@@ -16,6 +16,8 @@ import           Network.Mime        (defaultMimeLookup)
 import           System.FilePath     (takeFileName)
 import           System.IO           (IOMode (ReadMode))
 import           Zip                 (getSingleFile)
+import Yesod.RssFeed
+import Data.Time.Clock (getCurrentTime)
 
 getBook :: Int -> Handler BookAndData
 getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
@@ -59,7 +61,6 @@ sendFileMimeConduit fp = do
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
 
-
 getBookRawFileR :: Int -> Handler TypedContent
 getBookRawFileR _id = do
     abType <- getBook _id
@@ -102,6 +103,39 @@ getBookOverlayR _id = do
                 <img src=@{BookCoverR _id}>
                 <div>
                     <div .row>
-                        <a .btn.btn-primary href="#"> _{MsgCopyRSSLink}
+                        <a .btn.btn-primary href=@{BookRssR _id}> _{MsgCopyRSSLink}
                         <a .btn.btn-primary href=@{BookMp3FileR _id}> _{MsgDownloadMP3}
     |]
+
+bookFeed :: UTCTime -> CalibreBook -> Feed (Route App)
+bookFeed now book = Feed 
+    { feedTitle = bookTitle book
+    , feedLinkSelf = BookRssR _id
+    , feedLinkHome = BookRssR _id
+    , feedAuthor = ""
+    , feedDescription = ""
+    , feedLanguage = "en"
+    , feedUpdated = now
+    , feedLogo = Just (BookCoverR _id, bookTitle book)
+    , feedEntries = [ 
+        FeedEntry 
+        { feedEntryLink = BookRssR _id
+        , feedEntryUpdated = now
+        , feedEntryTitle = bookTitle book
+        , feedEntryContent = ""
+        , feedEntryEnclosure = Just $ EntryEnclosure
+            { enclosedUrl = BookMp3FileR _id
+            , enclosedSize = 0
+            , enclosedMimeType = "audio/mpeg"
+            }
+        } 
+    ]
+    }
+    where
+        _id = bookId book
+
+getBookRssR :: Int -> Handler RepRss
+getBookRssR _id = do
+    (b, _) <- getBook _id
+    now <- liftIO getCurrentTime
+    rssFeed $ bookFeed now b

@@ -17,3 +17,5 @@
 /book/#Int/raw                BookRawFileR          GET
 /book/#Int/rawFromZip/#Text   BookRawFileZipR       GET
 /book/#Int/mp3                BookMp3FileR          GET
+
+/book/#Int/rss                BookRssR              GET
