@@ -10,17 +10,17 @@ module Application where
 import           Control.Monad.Logger                 (liftLoc)
 import           Database.Calibre
 import qualified Database.SQLite.Simple               as Sql
-import           Import
+import           Import                               hiding (putStrLn)
 import           Language.Haskell.TH.Syntax           (qLocation)
 import           Network.Wai                          (Middleware)
 import           Network.Wai.Handler.Warp             (Settings,
                                                        defaultSettings,
                                                        defaultShouldDisplayException,
-                                                       runSettings,
+                                                       getPort, runSettings,
                                                        setOnException, setPort)
 import           Network.Wai.Middleware.Gzip          (def, gzip)
-import           Network.Wai.Middleware.RequestLogger (logStdout,
-                                                       logStdoutDev)
+import           Network.Wai.Middleware.RequestLogger (logStdoutDev)
+import           Prelude                              (putStrLn)
 import           System.Log.FastLogger                (defaultBufSize,
                                                        newStdoutLoggerSet,
                                                        toLogStr)
@@ -50,9 +50,9 @@ makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- makeLogWare foundation
     appPlain <- toWaiAppPlain foundation
-    return $ 
+    return $
         gzip def $
-        logWare $ 
+        logWare $
         defaultMiddlewaresNoLogging appPlain
 
 makeLogWare :: App -> IO Middleware
@@ -60,7 +60,7 @@ makeLogWare foundation =
     if appDevelopment $ appSettings foundation then
         return logStdoutDev
     else
-        return logStdout
+        return id
 
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
@@ -88,4 +88,7 @@ develMain = develMainHelper $ do
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
-appMain = getAppAndWarpSettings >>= uncurry runSettings
+appMain = do
+    (wsettings, app) <- getAppAndWarpSettings
+    putStrLn ("Running on port " ++ show (getPort wsettings))
+    runSettings wsettings app

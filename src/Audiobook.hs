@@ -97,6 +97,7 @@ getAudiobookMp3 book = do
                              , "-i", T.unpack fileUrl
                              , "-seekable", "0"
                              , "-f", "mp3"
+                             , "-q:a", "7"
                              , "-"
                              ]
             liftIO $ ffmpeg ffmpegArgs
