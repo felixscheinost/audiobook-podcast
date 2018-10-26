@@ -92,7 +92,7 @@ getBookMp3FileR _id = do
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
     book <- getBook _id
-    withUrlRenderer [hamlet|
+    defaultLayout [whamlet|
         <div .modal-content>
             <div .modal-header>
                 <h5 .modal-title> #{ bookTitle $ fst book} (#{bookId $ fst book})
@@ -102,7 +102,6 @@ getBookOverlayR _id = do
                 <img src=@{BookCoverR _id}>
                 <div>
                     <div .row>
-                        <a .btn.btn-primary href="#"> Copy RSS link
-                        <a .btn.btn-primary href=@{BookMp3FileR _id}> Download MP3
-                    <p>Format of source file: #{ show $ dataFormat $ snd book }
+                        <a .btn.btn-primary href="#"> _{MsgCopyRSSLink}
+                        <a .btn.btn-primary href=@{BookMp3FileR _id}> _{MsgDownloadMP3}
     |]
