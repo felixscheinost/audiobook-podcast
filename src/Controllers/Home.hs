@@ -8,56 +8,58 @@ import Database.Calibre
 import Data.List (find)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
+import Data.Maybe (fromMaybe)
 
-data View = View (Route App) AppMessage
+msgForView :: Route App -> AppMessage
+msgForView BookViewR = MsgBookView
+msgForView AuthorViewR = MsgAuthorView
+msgForView SeriesViewR = MsgSeriesView
+msgForView (SingleSeriesViewR _) = MsgSeriesView
+msgForView _ = MsgBookView
 
-instance Eq View where
-    (View r1 _) == (View r2 _) = r1 == r2
-
-views :: [View]
+views :: [Route App]
 views = 
-    [ View BookViewR MsgBookView
-    , View AuthorViewR MsgAuthorView
-    , View SeriesViewR MsgSeriesView
+    [ BookViewR 
+    , AuthorViewR 
+    , SeriesViewR
     ]
 
-viewForRoute :: Route App -> Maybe View
-viewForRoute r = find (\(View r' _) -> r == r') views
-
-getSelectedView :: Handler (Maybe View)
-getSelectedView = (>>= viewForRoute) <$> getCurrentRoute
-
-searchBarWidget :: Handler Widget
-searchBarWidget = do
-    selectedView <- getSelectedView
+showSearchBar :: Handler Widget
+showSearchBar = do
+    currentRoute <- getCurrentRoute
     return [whamlet|
         <div .input-group.w-100 #search-bar>
             <div .input-group-prepend>
-                $maybe (View _ msg) <- selectedView
-                    <button .btn.btn-outline-secondary.dropdown-toggle type=button data-toggle=dropdown aria-haspopup=true aria-expanded=false>
-                        _{msg}
+                <button .btn.btn-outline-secondary.dropdown-toggle type=button data-toggle=dropdown aria-haspopup=true aria-expanded=false>
+                    _{maybe MsgBookView msgForView currentRoute}
                 <div .dropdown-menu>
-                    $forall view@(View route msg) <- views
-                        <a .dropdown-item :Just view == selectedView:.active href=@{route}> _{msg}
+                    $forall route <- views
+                        <a .dropdown-item :Just route == currentRoute:.active href=@{route}> _{msgForView route}
             <input type="text" .form-control placeholder=_{MsgSearch}>
     |]
-    
 
-getBookViewR :: Handler Html
-getBookViewR = do
-    searchBar <- searchBarWidget
-    books <- runSQL getAllAudiobooks
-    defaultLayout [whamlet|
-        ^{searchBar} 
+showBooks :: [BookAndData] -> Handler Widget
+showBooks books = 
+    return [whamlet|
         <div .row #audiobook-container>
             $forall (book, _) <- books
                 <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId book)}>
                     <img style="height: 250px" src=@{BookCoverR (bookId book)}>
     |]
+    
+
+getBookViewR :: Handler Html
+getBookViewR = do
+    searchBar <- showSearchBar
+    books <- runSQL getAllAudiobooks >>= showBooks
+    defaultLayout [whamlet|
+        ^{searchBar} 
+        ^{books} 
+    |]
 
 getAuthorViewR :: Handler Html
 getAuthorViewR = do
-    searchBar <- searchBarWidget
+    searchBar <- showSearchBar
     books <- runSQL getAllAudiobooks
     defaultLayout [whamlet|
         ^{searchBar} 
@@ -70,13 +72,13 @@ getAuthorViewR = do
 
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
-    searchBar <- searchBarWidget
+    searchBar <- showSearchBar
     seriesWithBookIds <- runSQL getAllSeries
     defaultLayout [whamlet|
         ^{searchBar} 
         <div .row #series-container>
             $forall (series, bookIds) <- seriesWithBookIds
-                <a href="#" .series .text-dark .text-center .font-weight-bold>
+                <a href=@{SingleSeriesViewR (seriesId series)} .series .text-dark .text-center .font-weight-bold>
                     $case take 1 $ map TR.decimal $ T.splitOn "," bookIds
                         $of [(Right (bookId, _))]
                             <img .img src=@{BookCoverR bookId}>
@@ -86,7 +88,14 @@ getSeriesViewR = do
                     
     |]
 
-
+getSingleSeriesViewR :: Int -> Handler Html
+getSingleSeriesViewR seriesId = do
+    searchBar <- showSearchBar
+    books <- runSQL (getAllAudiobooksInSeries seriesId) >>= showBooks
+    defaultLayout [whamlet|
+        ^{searchBar} 
+        ^{books} 
+    |]
 
 getHomeR :: Handler Html
 getHomeR = redirect BookViewR

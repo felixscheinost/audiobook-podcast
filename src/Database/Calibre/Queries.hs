@@ -12,6 +12,11 @@ import           Database.Calibre.Tables
 import           Database.Calibre.Types
 import           Database.SQLite.Simple  (Connection)
 
+books = all_ (cbBooks calibreDb)
+series = all_ (cbSeries calibreDb)
+booksBookSort = orderBy_ (asc_ . bookSort) books
+booksSeriesSort = orderBy_ (asc_ . bookSeriesIndex) books
+
 seriesBookRelationship :: ManyToMany CalibreDb CalibreSeriesT CalibreBookT
 seriesBookRelationship =
     manyToMany_ (cbBooksSeries calibreDb) bsSeries bsBook
@@ -23,23 +28,28 @@ joinAudiobookData b = do
 
 getAudiobook :: Int -> Connection -> IO (Maybe (CalibreBook, CalibreBookData))
 getAudiobook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
-    b <- all_ (cbBooks calibreDb)
+    b <- books
     d <- joinAudiobookData b
     guard_ (bookId b ==. val_ _bookId)
     return (b, d)
 
 getAllAudiobooks :: Connection -> IO [(CalibreBook, CalibreBookData)]
 getAllAudiobooks conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
-    b <- orderBy_ (asc_ . bookSort) (all_ (cbBooks calibreDb))
+    b <- booksBookSort
     d <- joinAudiobookData b
     return (b, d)
 
 getAllSeries :: Connection -> IO [(CalibreSeries, Text)]
 getAllSeries conn = runBeamSqliteDebug putStrLn conn $ runSelectReturningList $ select $ do
     (s, bIds) <- aggregate_ (\(series, book) -> (group_ series, sqliteGroupConcatOver distinctInGroup_ (bookId book))) $ do
-        (s, b) <- seriesBookRelationship (all_ (cbSeries calibreDb)) (all_ (cbBooks calibreDb))
-        d <- join_ (cbData calibreDb) (\_data -> dataBook _data ==. pk b)
-        guard_ (dataFormat d `in_` map val_ supportedCalibreBookFormats)
+        (s, b) <- seriesBookRelationship series books
+        d <- joinAudiobookData b
         return (s, b)
     return (s, fromMaybe_ (val_ "") bIds)
 
+getAllAudiobooksInSeries :: Int -> Connection -> IO [(CalibreBook, CalibreBookData)]
+getAllAudiobooksInSeries _seriesId conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+    (s, b) <- seriesBookRelationship series booksSeriesSort
+    d <- joinAudiobookData b
+    guard_ (seriesId s ==. val_ _seriesId)
+    return (b, d)
