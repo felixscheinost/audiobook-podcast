@@ -44,26 +44,22 @@ checkRange fileSize from to
 -- Also returns the status code the client should set:
 --  - 200 if no range header was present
 --  - 206 if a valid range header was present
-handleRange :: FileSize -> Maybe ByteRanges -> Handler (Integer, Integer, Status)
-handleRange fileSize maybeByteRange = do
-    range <- lookupHeader "Range"
-    putStrLn $ T.pack $ "Range: " ++ show range
-    (from, to, status) <- case maybeByteRange of
-        Just [ByteRangeFrom from] ->
-            checkRange fileSize from (fileSize - 1)
-        Just [ByteRangeFromTo from to] ->
-            checkRange fileSize from to
-        Just [ByteRangeSuffix to] ->
-            checkRange fileSize (fileSize - to) (fileSize - 1)
-        Nothing -> 
-            return (0, fileSize - 1, status200)
-        _ -> 
-            rangeNotSatisfiable
-    return (from, to - from + 1, status)
-
--- get range header, parse range header and do range handling using `parseRange` above
 parseRange :: FileSize -> Handler (Integer, Integer, Status)
-parseRange fs = (maybe Nothing HTTP.parseByteRanges <$> lookupHeader "Range") >>= handleRange fs
+parseRange fileSize = do
+    range <- lookupHeader "Range"
+    let noRangeHeader = return (0, fileSize - 1, status200)
+    let handleParseResult r = case r of
+            Just [ByteRangeFrom from] ->
+                checkRange fileSize from (fileSize - 1)
+            Just [ByteRangeFromTo from to] ->
+                checkRange fileSize from to
+            Just [ByteRangeSuffix to] ->
+                checkRange fileSize (fileSize - to - 1) (fileSize - 1)
+            _ -> 
+                rangeNotSatisfiable
+    (from, to, status) <- maybe noRangeHeader (handleParseResult . HTTP.parseByteRanges) range
+    putStrLn $ T.pack $ show from ++ " " ++ show to
+    return (from, to - from + 1, status)
 
 -- Respond with a file; Take the mime type from the file extension.
 -- This uses the sendfile(2) call on Linux.
