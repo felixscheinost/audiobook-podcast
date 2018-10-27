@@ -5,7 +5,7 @@
 module Controllers.Book where
 
 import           Audiobook
-import qualified Data.Binary.Builder as BSB
+import qualified Data.ByteString.Builder as BSB
 import           Data.Conduit        (Flush (..))
 import           Data.Conduit.Binary (sourceFileRange)
 import qualified Data.Text           as T
@@ -82,7 +82,7 @@ sendFileMimeConduit fp = do
         else return (0, fileSize, status200)
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendResponseStatus status $ TypedContent mime $ ContentSource $
-        mapOutput (Chunk . BSB.fromByteString) $
+        mapOutput (Chunk . BSB.byteString) $
             sourceFileRange fp (Just offset) (Just count)
 
 getBookCoverR :: Int -> Handler TypedContent
@@ -108,7 +108,7 @@ getBookRawFileZipR _id zipFilePath = do
         Zip _ zipPath _ -> do
             let mime = defaultMimeLookup zipFilePath
             conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
-            respondSource mime $ mapOutput (Chunk . BSB.fromByteString) conduit
+            respondSource mime $ mapOutput (Chunk . BSB.byteString) conduit
         _ ->
             invalidArgs ["Not a ZIP file"]
 
@@ -116,7 +116,7 @@ getBookMp3FileR :: Int -> Handler TypedContent
 getBookMp3FileR _id = do
     c <- getBook _id >>= getAudiobookMp3
     replaceOrAddHeader "Accept-Ranges" "none"
-    respondSource "audio/mpeg" $ mapOutput (Chunk . BSB.fromByteString) c
+    respondSource "audio/mpeg" $ mapOutput (Chunk . BSB.byteString) c
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
