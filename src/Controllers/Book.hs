@@ -46,6 +46,7 @@ checkRange fileSize from to
 --  - 206 if a valid range header was present
 parseRange :: FileSize -> Handler (Integer, Integer, Status)
 parseRange fileSize = do
+    replaceOrAddHeader "Accept-Ranges" "bytes"
     range <- lookupHeader "Range"
     let noRangeHeader = return (0, fileSize - 1, status200)
     let handleParseResult r = case r of
@@ -58,7 +59,6 @@ parseRange fileSize = do
             _ -> 
                 rangeNotSatisfiable
     (from, to, status) <- maybe noRangeHeader (handleParseResult . HTTP.parseByteRanges) range
-    putStrLn $ T.pack $ show from ++ " " ++ show to
     return (from, to - from + 1, status)
 
 -- Respond with a file; Take the mime type from the file extension.
@@ -74,10 +74,12 @@ sendFileMime fp = do
 sendFileMimeConduit :: FilePath -> Handler TypedContent
 sendFileMimeConduit fp = do
     fileSize <- withFile fp ReadMode hFileSize
-    (offset, count, status) <- parseRange fileSize
-    putStrLn $ T.pack $ show "Sending " ++ show count ++ " bytes, from " ++ show offset
-    replaceOrAddHeader "Accept-Ranges" "bytes"
-    replaceOrAddHeader "Content-Length" $ T.pack $ show count
+    notFFmpeg <- (/= Just "calibre_ffmpeg") <$> lookupHeader "User-Agent"
+    -- even if I completely turned off all range logic, just the "Accept-Ranges" header.
+    -- resulted in an ffmpeg error. Turn off ranges completely for ffmpeg.
+    (offset, count, status) <- 
+        if notFFmpeg then parseRange fileSize
+        else return (0, fileSize, status200)
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendResponseStatus status $ TypedContent mime $ ContentSource $
         mapOutput (Chunk . BSB.fromByteString) $

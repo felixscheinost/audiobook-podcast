@@ -94,6 +94,7 @@ getAudiobookMp3 book = do
             urlRender <- getUrlRender
             let fileUrl = urlRender $ BookRawFileR (bookId $ fst book)
             let ffmpegArgs = [ "-f", ffmpegFormatStr sourceFormat
+                             , "-user_agent", "calibre_ffmpeg"
                              , "-i", T.unpack fileUrl
                              , "-seekable", "0"
                              , "-f", "mp3"
