@@ -25,15 +25,51 @@ getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
 rangeNotSatisfiable :: Handler a
 rangeNotSatisfiable = sendResponseStatus status416 ("" :: Text)
 
-type OffsetAndCount = (Integer, Integer)
+type FileSize = Integer
 
-checkRange :: Integer -> OffsetAndCount -> Handler OffsetAndCount
-checkRange fileSize (offset, count)
-    | offset <= fileSize && count >= 0 = return (offset, min maxCount count)
+-- Checks that a byte range is valid 
+--  - if yes: set Content-Range header and return status code 206 in third return value
+--  - if no: respond with status code 416
+checkRange :: FileSize -> Integer -> Integer -> Handler (Integer, Integer, Status)
+checkRange fileSize from to
+    | 0 <= from && from <= to && to <= fileSize= do
+        replaceOrAddHeader "Content-Range" $ T.pack $ show from ++ "-" ++ show to ++ "/" ++ show fileSize
+        return (from, to, status206)
     | otherwise = rangeNotSatisfiable
-    where
-        maxCount = fileSize - offset
 
+-- Handles the HTTP `Range` header.
+-- Multiple ranges not supported and yield a 416.
+-- Sets the "Content-Range" responds header if the range is valid
+-- Converts the byte range to a byte offset and number of bytes to send
+-- Also returns the status code the client should set:
+--  - 200 if no range header was present
+--  - 206 if a valid range header was present
+handleRange :: FileSize -> Maybe ByteRanges -> Handler (Integer, Integer, Status)
+handleRange fileSize maybeByteRange = do
+    range <- lookupHeader "Range"
+    putStrLn $ T.pack $ "Range: " ++ show range
+    (from, to, status) <- case maybeByteRange of
+        Just [ByteRangeFrom from] ->
+            checkRange fileSize from (fileSize - 1)
+        Just [ByteRangeFromTo from to] ->
+            checkRange fileSize from to
+        Just [ByteRangeSuffix to] ->
+            checkRange fileSize (fileSize - to) (fileSize - 1)
+        Nothing -> 
+            return (0, fileSize - 1, status200)
+        _ -> 
+            rangeNotSatisfiable
+    return (from, to - from + 1, status)
+
+-- get range header, parse range header and do range handling using `parseRange` above
+parseRange :: FileSize -> Handler (Integer, Integer, Status)
+parseRange fs = (maybe Nothing HTTP.parseByteRanges <$> lookupHeader "Range") >>= handleRange fs
+
+-- Respond with a file; Take the mime type from the file extension.
+-- This uses the sendfile(2) call on Linux.
+-- Had sporadic problems with high CPU (probably GC)
+-- Switched to custom function `sendFileMimeConduit` which reads and sends the file manually
+-- => Slower than using sendfile(2) 
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
@@ -42,19 +78,12 @@ sendFileMime fp = do
 sendFileMimeConduit :: FilePath -> Handler TypedContent
 sendFileMimeConduit fp = do
     fileSize <- withFile fp ReadMode hFileSize
-    maybeByteRange <-  (>>= HTTP.parseByteRanges) <$> lookupHeader "Range"
-    (offset, count) <- case maybeByteRange of
-            Just [ByteRangeFrom from] ->
-                checkRange fileSize (from, fileSize - from)
-            Just [ByteRangeFromTo from to] ->
-                checkRange fileSize (from, to - from + 1)
-            Just [ByteRangeSuffix to] ->
-                checkRange fileSize (0, to + 1)
-            Nothing -> return (0, fileSize)
-            _ -> rangeNotSatisfiable
+    (offset, count, status) <- parseRange fileSize
+    putStrLn $ T.pack $ show "Sending " ++ show count ++ " bytes, from " ++ show offset
+    replaceOrAddHeader "Accept-Ranges" "bytes"
     replaceOrAddHeader "Content-Length" $ T.pack $ show count
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
-    respondSource mime $
+    sendResponseStatus status $ TypedContent mime $ ContentSource $
         mapOutput (Chunk . BSB.fromByteString) $
             sourceFileRange fp (Just offset) (Just count)
 
@@ -88,6 +117,7 @@ getBookRawFileZipR _id zipFilePath = do
 getBookMp3FileR :: Int -> Handler TypedContent
 getBookMp3FileR _id = do
     c <- getBook _id >>= getAudiobookMp3
+    replaceOrAddHeader "Accept-Ranges" "none"
     respondSource "audio/mpeg" $ mapOutput (Chunk . BSB.fromByteString) c
 
 getBookOverlayR :: Int -> Handler Html
