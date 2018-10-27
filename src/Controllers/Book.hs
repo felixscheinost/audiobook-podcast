@@ -15,7 +15,7 @@ import qualified Network.HTTP.Types  as HTTP
 import           Network.Mime        (defaultMimeLookup)
 import           System.FilePath     (takeFileName)
 import           System.IO           (IOMode (ReadMode))
-import           Zip                 (getSingleFile)
+import qualified          Zip                
 import Yesod.RssFeed
 import Data.Time.Clock (getCurrentTime)
 
@@ -107,7 +107,7 @@ getBookRawFileZipR _id zipFilePath = do
     case abType of
         Zip _ zipPath _ -> do
             let mime = defaultMimeLookup zipFilePath
-            conduit <- liftIO $ getSingleFile zipPath (T.unpack zipFilePath)
+            conduit <- liftIO $ Zip.getSingleFile zipPath (T.unpack zipFilePath)
             respondSource mime $ mapOutput (Chunk . BSB.byteString) conduit
         _ ->
             invalidArgs ["Not a ZIP file"]
