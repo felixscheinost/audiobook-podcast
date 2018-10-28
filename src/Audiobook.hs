@@ -96,14 +96,14 @@ getAudiobookMp3 book@BookAndData{..} = do
         SingleFile Mp3 filePath -> return $ CDT.sourceFile filePath
         SingleFile sourceFormat _ -> do
             urlRender <- getUrlRender
-            bitrate <- ffmpegBitrate . appMp3Bitrate . appSettings <$> getYesod
+            quality <- appMp3Quality . appSettings <$> getYesod
             let fileUrl = urlRender $ BookRawFileR (bookId bdBook)
             let ffmpegArgs = [ "-f", ffmpegFormatStr sourceFormat
                              , "-user_agent", "calibre_ffmpeg" -- for disabling HTTP Range handling
                              , "-i", T.unpack fileUrl
                              , "-seekable", "0"
                              , "-f", "mp3"
-                             , "-b:a", bitrate
+                             , "-q:a", show quality
                              , "-nv" -- no video
                              , "-"
                              ]
@@ -121,6 +121,7 @@ getAudiobookMp3 book@BookAndData{..} = do
                                      , "-i", tempFileInput
                                      , "-c", "copy"
                                      , "-f", "mp3"
+                                     , "-nv"
                                      , "-"
                                      ]
                     ffmpegStdout <- ffmpeg ffmpegArgs
