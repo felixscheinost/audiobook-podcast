@@ -43,7 +43,8 @@ showBooks books =
         <div .row #audiobook-container>
             $forall BookAndData{bdBook} <- books
                 <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId bdBook)}>
-                    <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
+                    <div .img-wrapper style="width: 180px">
+                        <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
     |]
 
 
