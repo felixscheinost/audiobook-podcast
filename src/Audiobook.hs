@@ -96,20 +96,21 @@ getAudiobookMp3 book@BookAndData{..} = do
         SingleFile Mp3 filePath -> return $ CDT.sourceFile filePath
         SingleFile sourceFormat _ -> do
             urlRender <- getUrlRender
-            quality <- appMp3Quality . appSettings <$> getYesod
+            mp3Quality <- appMp3Quality . appSettings <$> getYesod
             let fileUrl = urlRender $ BookRawFileR (bookId bdBook)
             let ffmpegArgs = [ "-f", ffmpegFormatStr sourceFormat
                              , "-user_agent", "calibre_ffmpeg" -- for disabling HTTP Range handling
                              , "-i", T.unpack fileUrl
                              , "-seekable", "0"
                              , "-f", "mp3"
-                             , "-q:a", show quality
+                             , "-q:a", show mp3Quality
                              , "-nv" -- no video
                              , "-"
                              ]
             liftIO $ ffmpeg ffmpegArgs
         Zip Mp3 _ files -> do
             urlRender <- getUrlRender
+            mp3Quality <- appMp3Quality . appSettings <$> getYesod
             let urls = map (urlRender . BookRawFileZipR (bookId bdBook) . T.pack) files
             let lineFor url = T.concat ["file '", url, "'"]
             let fileContents = T.intercalate "\n" $ map lineFor urls
@@ -119,8 +120,8 @@ getAudiobookMp3 book@BookAndData{..} = do
                                      , "-safe", "0"
                                      , "-protocol_whitelist", "file,tcp,http"
                                      , "-i", tempFileInput
-                                     , "-c", "copy"
                                      , "-f", "mp3"
+                                     , "-q:a", show mp3Quality
                                      , "-nv"
                                      , "-"
                                      ]
