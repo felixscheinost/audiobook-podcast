@@ -1,6 +1,7 @@
 .vscode
 client_session_key.aes
 logs
+settings.yaml
 
 dist*
 static/tmp/
