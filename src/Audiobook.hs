@@ -104,7 +104,7 @@ getAudiobookMp3 book@BookAndData{..} = do
                              , "-seekable", "0"
                              , "-f", "mp3"
                              , "-q:a", show mp3Quality
-                             , "-nv" -- no video
+                             , "-vn" -- no video
                              , "-"
                              ]
             liftIO $ ffmpeg ffmpegArgs
@@ -122,7 +122,7 @@ getAudiobookMp3 book@BookAndData{..} = do
                                      , "-i", tempFileInput
                                      , "-f", "mp3"
                                      , "-q:a", show mp3Quality
-                                     , "-nv"
+                                     , "-vn"
                                      , "-"
                                      ]
                     ffmpegStdout <- ffmpeg ffmpegArgs
