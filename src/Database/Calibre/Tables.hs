@@ -12,18 +12,19 @@
 module Database.Calibre.Tables where
 
 import           Database.Beam
-import           Database.Calibre.Types
+import           Database.Calibre.BookFormat
 import           Import
+
 
 -------------------------------------
 -- BOOK
 -------------------------------------
 
 data CalibreBookT f = CalibreBook
-    { bookId    :: Columnar f Int
-    , bookPath  :: Columnar f Text
-    , bookTitle :: Columnar f Text
-    , bookSort :: Columnar f Text
+    { bookId          :: Columnar f Int
+    , bookPath        :: Columnar f Text
+    , bookTitle       :: Columnar f Text
+    , bookSort        :: Columnar f Text
     , bookSeriesIndex :: Columnar f Float
     } deriving Generic
 
@@ -63,12 +64,18 @@ instance Table CalibreBookDataT where
     data PrimaryKey CalibreBookDataT f = CalibreBookDataId (Columnar f Int) deriving Generic
     primaryKey = CalibreBookDataId . dataId
 
+
+data BookAndData = BookAndData
+    { bdBook :: CalibreBook
+    , bdData :: CalibreBookData
+    }
+
 -------------------------------------
 -- SERIES
 ------------------------------------
 
 data CalibreSeriesT f = CalibreSeries
-    { seriesId :: Columnar f Int
+    { seriesId   :: Columnar f Int
     , seriesName :: Columnar f Text
     } deriving Generic
 
@@ -89,9 +96,9 @@ instance Table CalibreSeriesT where
 ------------------------------------
 
 data CalibreBookSeriesLinkT f = CalibreBookSeriesLink
-    { bsId :: Columnar f Int
+    { bsId     :: Columnar f Int
     , bsSeries :: PrimaryKey CalibreSeriesT f
-    , bsBook :: PrimaryKey CalibreBookT f
+    , bsBook   :: PrimaryKey CalibreBookT f
     } deriving Generic
 
 type CalibreBookSeriesLink = CalibreBookSeriesLinkT Identity
@@ -111,21 +118,21 @@ instance Table CalibreBookSeriesLinkT where
 ------------------------------------
 
 data CalibreDb f = CalibreDb
-    { cbBooks   :: f (TableEntity CalibreBookT)
-    , cbData   :: f (TableEntity CalibreBookDataT)
-    , cbSeries :: f (TableEntity CalibreSeriesT)
+    { cbBooks       :: f (TableEntity CalibreBookT)
+    , cbData        :: f (TableEntity CalibreBookDataT)
+    , cbSeries      :: f (TableEntity CalibreSeriesT)
     , cbBooksSeries :: f (TableEntity CalibreBookSeriesLinkT)
     } deriving Generic
 
 instance Database be CalibreDb
 
 calibreDb :: DatabaseSettings be CalibreDb
-calibreDb = defaultDbSettings `withDbModification` 
+calibreDb = defaultDbSettings `withDbModification`
     dbModification {
         cbBooks = modifyTable (const "books") tableModification,
-        cbData = modifyTable (const "data") $ 
+        cbData = modifyTable (const "data") $
             CalibreBookData "id" "format" "name" (CalibreBookId "book"),
         cbSeries = modifyTable (const "series") tableModification,
         cbBooksSeries = modifyTable (const "books_series_link") $
             CalibreBookSeriesLink "id" (CalibreSeriesId "series") (CalibreBookId "book")
-    }                
+    }

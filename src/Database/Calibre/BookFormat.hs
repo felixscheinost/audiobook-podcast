@@ -4,11 +4,15 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Database.Calibre.Types where
+module Database.Calibre.BookFormat(
+    CalibreBookFormat(..),
+    supportedCalibreBookFormats,
+    toFileExtension
+) where
 
 import           Data.Foldable                    (asum)
-import qualified Data.Text as T
 import           Data.Text                        (Text)
+import qualified Data.Text                        as T
 import           Database.Beam
 import           Database.Beam.Backend.SQL
 import           Database.Beam.Sqlite             (Sqlite)
@@ -19,7 +23,7 @@ import           Database.SQLite.Simple.Ok
 
 data CalibreBookFormat
     = ZIP
-    | MP3 
+    | MP3
     | M4A
     | M4B
     deriving (Show, Enum, Eq)

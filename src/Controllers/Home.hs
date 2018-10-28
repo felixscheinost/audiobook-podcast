@@ -1,24 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RecordWildCards   #-}
 module Controllers.Home where
 
-import Foundation
-import Yesod.Core
-import Database.Calibre
-import qualified Data.Text as T
-import qualified Data.Text.Read as TR
+import qualified Data.Text        as T
+import qualified Data.Text.Read   as TR
+import           Database.Calibre
+import           Foundation
+import           Yesod.Core
 
 msgForView :: Route App -> AppMessage
-msgForView BookViewR = MsgBookView
-msgForView AuthorViewR = MsgAuthorView
-msgForView SeriesViewR = MsgSeriesView
+msgForView BookViewR             = MsgBookView
+msgForView AuthorViewR           = MsgAuthorView
+msgForView SeriesViewR           = MsgSeriesView
 msgForView (SingleSeriesViewR _) = MsgSeriesView
-msgForView _ = MsgBookView
+msgForView _                     = MsgBookView
 
 views :: [Route App]
-views = 
-    [ BookViewR 
-    , AuthorViewR 
+views =
+    [ BookViewR
+    , AuthorViewR
     , SeriesViewR
     ]
 
@@ -37,22 +38,22 @@ showSearchBar = do
     |]
 
 showBooks :: [BookAndData] -> Handler Widget
-showBooks books = 
+showBooks books =
     return [whamlet|
         <div .row #audiobook-container>
-            $forall (book, _) <- books
-                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId book)}>
-                    <img style="height: 250px" src=@{BookCoverR (bookId book)}>
+            $forall BookAndData{bdBook} <- books
+                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId bdBook)}>
+                    <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
     |]
-    
+
 
 getBookViewR :: Handler Html
 getBookViewR = do
     searchBar <- showSearchBar
     books <- runSQL getAllAudiobooks >>= showBooks
     defaultLayout [whamlet|
-        ^{searchBar} 
-        ^{books} 
+        ^{searchBar}
+        ^{books}
     |]
 
 getAuthorViewR :: Handler Html
@@ -60,20 +61,20 @@ getAuthorViewR = do
     searchBar <- showSearchBar
     books <- runSQL getAllAudiobooks
     defaultLayout [whamlet|
-        ^{searchBar} 
+        ^{searchBar}
         <div .row #audiobook-container>
-            $forall (book, _) <- books
-                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId book)}>
-                    <img style="height: 250px" src=@{BookCoverR (bookId book)}>
+            $forall BookAndData{bdBook} <- books
+                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId bdBook)}>
+                    <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
     |]
-    
+
 
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
     searchBar <- showSearchBar
     seriesWithBookIds <- runSQL getAllSeries
     defaultLayout [whamlet|
-        ^{searchBar} 
+        ^{searchBar}
         <div .row #series-container>
             $forall (series, bookIds) <- seriesWithBookIds
                 <a href=@{SingleSeriesViewR (seriesId series)} .series .text-dark .text-center .font-weight-bold>
@@ -83,7 +84,7 @@ getSeriesViewR = do
                         $of _
                             <div .img style="height: 250px; width: 158px">
                     #{seriesName series}
-                    
+
     |]
 
 getSingleSeriesViewR :: Int -> Handler Html
@@ -91,8 +92,8 @@ getSingleSeriesViewR _seriesId = do
     searchBar <- showSearchBar
     books <- runSQL (getAllAudiobooksInSeries _seriesId) >>= showBooks
     defaultLayout [whamlet|
-        ^{searchBar} 
-        ^{books} 
+        ^{searchBar}
+        ^{books}
     |]
 
 getHomeR :: Handler Html

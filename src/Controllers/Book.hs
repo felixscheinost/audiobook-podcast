@@ -1,23 +1,24 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Controllers.Book where
 
 import           Audiobook
 import qualified Data.ByteString.Builder as BSB
-import           Data.Conduit        (Flush (..))
-import           Data.Conduit.Binary (sourceFileRange)
-import qualified Data.Text           as T
+import           Data.Conduit            (Flush (..))
+import           Data.Conduit.Binary     (sourceFileRange)
+import qualified Data.Text               as T
+import           Data.Time.Clock         (getCurrentTime)
 import           Database.Calibre
-import           Import hiding (count, fileSize)  
-import qualified Network.HTTP.Types  as HTTP
-import           Network.Mime        (defaultMimeLookup)
-import           System.FilePath     (takeFileName)
-import           System.IO           (IOMode (ReadMode))
-import qualified          Zip                
-import Yesod.RssFeed
-import Data.Time.Clock (getCurrentTime)
+import           Import                  hiding (count, fileSize)
+import qualified Network.HTTP.Types      as HTTP
+import           Network.Mime            (defaultMimeLookup)
+import           System.FilePath         (takeFileName)
+import           System.IO               (IOMode (ReadMode))
+import           Yesod.RssFeed
+import qualified Zip
 
 getBook :: Int -> Handler BookAndData
 getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
@@ -27,7 +28,7 @@ rangeNotSatisfiable = sendResponseStatus status416 ("" :: Text)
 
 type FileSize = Integer
 
--- Checks that a byte range is valid 
+-- Checks that a byte range is valid
 --  - if yes: set Content-Range header and return status code 206 in third return value
 --  - if no: respond with status code 416
 checkRange :: FileSize -> Integer -> Integer -> Handler (Integer, Integer, Status)
@@ -56,7 +57,7 @@ parseRange fileSize = do
                 checkRange fileSize from to
             Just [ByteRangeSuffix to] ->
                 checkRange fileSize (fileSize - to - 1) (fileSize - 1)
-            _ -> 
+            _ ->
                 rangeNotSatisfiable
     (from, to, status) <- maybe noRangeHeader (handleParseResult . HTTP.parseByteRanges) range
     return (from, to - from + 1, status)
@@ -65,7 +66,7 @@ parseRange fileSize = do
 -- This uses the sendfile(2) call on Linux.
 -- Had sporadic problems with high CPU (probably GC)
 -- Switched to custom function `sendFileMimeConduit` which reads and sends the file manually
--- => Slower than using sendfile(2) 
+-- => Slower than using sendfile(2)
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
@@ -77,7 +78,7 @@ sendFileMimeConduit fp = do
     notFFmpeg <- (/= Just "calibre_ffmpeg") <$> lookupHeader "User-Agent"
     -- even if I completely turned off all range logic, just the "Accept-Ranges" header.
     -- resulted in an ffmpeg error. Turn off ranges completely for ffmpeg.
-    (offset, count, status) <- 
+    (offset, count, status) <-
         if notFFmpeg then parseRange fileSize
         else return (0, fileSize, status200)
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
@@ -120,11 +121,11 @@ getBookMp3FileR _id = do
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
-    book <- getBook _id
+    BookAndData{..} <- getBook _id
     defaultLayout [whamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{ bookTitle $ fst book} (#{bookId $ fst book})
+                <h5 .modal-title> #{ bookTitle bdBook} (#{_id})
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
@@ -136,7 +137,7 @@ getBookOverlayR _id = do
     |]
 
 bookFeed :: UTCTime -> CalibreBook -> Feed (Route App)
-bookFeed now book = Feed 
+bookFeed now book = Feed
     { feedTitle = bookTitle book
     , feedLinkSelf = BookRssR _id
     , feedLinkHome = BookRssR _id
@@ -145,8 +146,8 @@ bookFeed now book = Feed
     , feedLanguage = "en"
     , feedUpdated = now
     , feedLogo = Just (BookCoverR _id, bookTitle book)
-    , feedEntries = [ 
-        FeedEntry 
+    , feedEntries = [
+        FeedEntry
         { feedEntryLink = BookRssR _id
         , feedEntryUpdated = now
         , feedEntryTitle = bookTitle book
@@ -156,7 +157,7 @@ bookFeed now book = Feed
             , enclosedSize = 0
             , enclosedMimeType = "audio/mpeg"
             }
-        } 
+        }
     ]
     }
     where
@@ -164,6 +165,6 @@ bookFeed now book = Feed
 
 getBookRssR :: Int -> Handler RepRss
 getBookRssR _id = do
-    (b, _) <- getBook _id
+    b <- getBook _id
     now <- liftIO getCurrentTime
-    rssFeed $ bookFeed now b
+    rssFeed $ bookFeed now (bdBook b)

@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TupleSections     #-}
 
 module Audiobook(
@@ -24,10 +25,9 @@ import           Data.Conduit.Process          (ClosedStream (..),
                                                 terminateProcess)
 import           Data.Either                   (either)
 import qualified Data.Text                     as T
-import           Database.Calibre              (BookAndData, bookFullPath,
-                                                bookId)
-import           Database.Calibre.Tables       (dataFormat)
-import qualified Database.Calibre.Types        as C
+import           Database.Calibre              (bookFullPath, bookId)
+import qualified Database.Calibre.BookFormat   as DF
+import           Database.Calibre.Tables       (BookAndData (..), dataFormat)
 import           Import                        hiding (toLower)
 import qualified System.Directory              as SYSDIR
 import           System.FilePath               (takeExtension)
@@ -73,12 +73,12 @@ instance Show AudiobookError where
 instance Exception AudiobookError
 
 getAudiobookType :: BookAndData -> Handler (Either AudiobookError AudiobookType)
-getAudiobookType book =
-    case dataFormat $ snd book of
-        C.MP3 -> Right . SingleFile Mp3 <$> bookFullPath book
-        C.M4A -> Right . SingleFile M4a <$> bookFullPath book
-        C.M4B -> Right . SingleFile M4b <$> bookFullPath book
-        C.ZIP -> do
+getAudiobookType book@BookAndData{..} =
+    case dataFormat bdData of
+        DF.MP3 -> Right . SingleFile Mp3 <$> bookFullPath book
+        DF.M4A -> Right . SingleFile M4a <$> bookFullPath book
+        DF.M4B -> Right . SingleFile M4b <$> bookFullPath book
+        DF.ZIP -> do
             fullPath <- bookFullPath book
             zipAudioFiles <- mapMaybe toAudioFile <$> Z.getFiles fullPath
             case zipAudioFiles of
@@ -90,14 +90,14 @@ getAudiobookType book =
                         _ -> return $ Left ZipContainsMultipleFormats
 
 getAudiobookMp3 :: BookAndData -> Handler (ConduitT () ByteString Handler ())
-getAudiobookMp3 book = do
+getAudiobookMp3 book@BookAndData{..} = do
     audiobookType <- getAudiobookType book >>= either throwM return
     case audiobookType of
         SingleFile Mp3 filePath -> return $ CDT.sourceFile filePath
         SingleFile sourceFormat _ -> do
             urlRender <- getUrlRender
             bitrate <- ffmpegBitrate . appMp3Bitrate . appSettings <$> getYesod
-            let fileUrl = urlRender $ BookRawFileR (bookId $ fst book)
+            let fileUrl = urlRender $ BookRawFileR (bookId bdBook)
             let ffmpegArgs = [ "-f", ffmpegFormatStr sourceFormat
                              , "-user_agent", "calibre_ffmpeg" -- for disabling HTTP Range handling
                              , "-i", T.unpack fileUrl
@@ -110,7 +110,7 @@ getAudiobookMp3 book = do
             liftIO $ ffmpeg ffmpegArgs
         Zip Mp3 _ files -> do
             urlRender <- getUrlRender
-            let urls = map (urlRender . BookRawFileZipR (bookId $ fst book) . T.pack) files
+            let urls = map (urlRender . BookRawFileZipR (bookId bdBook) . T.pack) files
             let lineFor url = T.concat ["file '", url, "'"]
             let fileContents = T.intercalate "\n" $ map lineFor urls
             let setup = do
