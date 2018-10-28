@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 632525aa868666a6cffb28346997aa3aa7c9b255cd0f4089ac5ba23d7cc25c21
+-- hash: a316590d474ba7313a096b2cfec76e0368a6e05f30ef7e9c32bf66f801b6d29d
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -60,6 +60,7 @@ library
     , monad-logger
     , natural-sort
     , process
+    , scientific
     , shakespeare
     , sqlite-simple
     , template-haskell
@@ -111,6 +112,7 @@ executable calibre-audiobook-podcast
     , monad-logger
     , natural-sort
     , process
+    , scientific
     , shakespeare
     , sqlite-simple
     , template-haskell

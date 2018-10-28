@@ -5,10 +5,8 @@ module Controllers.Home where
 import Foundation
 import Yesod.Core
 import Database.Calibre
-import Data.List (find)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
-import Data.Maybe (fromMaybe)
 
 msgForView :: Route App -> AppMessage
 msgForView BookViewR = MsgBookView
@@ -89,9 +87,9 @@ getSeriesViewR = do
     |]
 
 getSingleSeriesViewR :: Int -> Handler Html
-getSingleSeriesViewR seriesId = do
+getSingleSeriesViewR _seriesId = do
     searchBar <- showSearchBar
-    books <- runSQL (getAllAudiobooksInSeries seriesId) >>= showBooks
+    books <- runSQL (getAllAudiobooksInSeries _seriesId) >>= showBooks
     defaultLayout [whamlet|
         ^{searchBar} 
         ^{books} 

@@ -3,7 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
-module Database.Calibre.Queries where
+module Database.Calibre.Queries (
+    getAudiobook, getAllAudiobooks, 
+    getAllSeries, getAllAudiobooksInSeries
+) where
 
 import           Data.Text               (Text)
 import           Database.Beam
@@ -41,9 +44,9 @@ getAllAudiobooks conn = runBeamSqlite conn $ runSelectReturningList $ select $ d
 
 getAllSeries :: Connection -> IO [(CalibreSeries, Text)]
 getAllSeries conn = runBeamSqliteDebug putStrLn conn $ runSelectReturningList $ select $ do
-    (s, bIds) <- aggregate_ (\(series, book) -> (group_ series, sqliteGroupConcatOver distinctInGroup_ (bookId book))) $ do
+    (s, bIds) <- aggregate_ (\(s, b) -> (group_ s, sqliteGroupConcatOver distinctInGroup_ (bookId b))) $ do
         (s, b) <- seriesBookRelationship series books
-        d <- joinAudiobookData b
+        _ <- joinAudiobookData b
         return (s, b)
     return (s, fromMaybe_ (val_ "") bIds)
 

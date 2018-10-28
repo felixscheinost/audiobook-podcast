@@ -2,7 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
-module Audiobook where
+module Audiobook(
+    AudioFormat(..),
+    AudiobookType(..),
+    AudiobookError(..),
+    getAudiobookType, getAudiobookMp3
+) where
 
 import           Conduit                       (ConduitT)
 import qualified Conduit                       as CDT
@@ -16,8 +21,7 @@ import           Data.Conduit.Process          (ClosedStream (..),
                                                 UseProvidedHandle (..), proc,
                                                 streamingProcess,
                                                 streamingProcessHandleRaw,
-                                                terminateProcess,
-                                                withCheckedProcessCleanup)
+                                                terminateProcess)
 import           Data.Either                   (either)
 import qualified Data.Text                     as T
 import           Database.Calibre              (BookAndData, bookFullPath,
@@ -92,13 +96,15 @@ getAudiobookMp3 book = do
         SingleFile Mp3 filePath -> return $ CDT.sourceFile filePath
         SingleFile sourceFormat _ -> do
             urlRender <- getUrlRender
+            bitrate <- ffmpegBitrate . appMp3Bitrate . appSettings <$> getYesod
             let fileUrl = urlRender $ BookRawFileR (bookId $ fst book)
             let ffmpegArgs = [ "-f", ffmpegFormatStr sourceFormat
-                             , "-user_agent", "calibre_ffmpeg"
+                             , "-user_agent", "calibre_ffmpeg" -- for disabling HTTP Range handling
                              , "-i", T.unpack fileUrl
                              , "-seekable", "0"
                              , "-f", "mp3"
-                             , "-q:a", "7"
+                             , "-b:a", bitrate
+                             , "-nv" -- no video
                              , "-"
                              ]
             liftIO $ ffmpeg ffmpegArgs
