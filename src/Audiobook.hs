@@ -121,7 +121,8 @@ getAudiobookMp3 book@BookAndData{..} = do
                                      , "-protocol_whitelist", "file,tcp,http"
                                      , "-i", tempFileInput
                                      , "-f", "mp3"
-                                     , "-q:a", show mp3Quality
+                                     --, "-q:a", show mp3Quality
+                                     , "-c", "copy"
                                      , "-vn"
                                      , "-"
                                      ]

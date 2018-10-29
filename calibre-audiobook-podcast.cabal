@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a19dd4231cf63d94cb9571d4ccbb8a2cacf294768f0bff1c8d771876fd19faa6
+-- hash: a0f96a5552968fa5985fecd6757ae7f1271102cb15bbc46e62420f317afe09ec
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -47,6 +47,7 @@ library
     , beam-sqlite
     , binary
     , bytestring
+    , case-insensitive
     , classy-prelude-yesod
     , conduit
     , conduit-extra
@@ -99,6 +100,7 @@ executable calibre-audiobook-podcast
     , binary
     , bytestring
     , calibre-audiobook-podcast
+    , case-insensitive
     , classy-prelude-yesod
     , conduit
     , conduit-extra

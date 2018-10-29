@@ -8,19 +8,23 @@
 module Application where
 
 import           Control.Monad.Logger                 (liftLoc)
+import qualified Data.CaseInsensitive                 as CI
+import qualified Data.Text                            as T
 import           Database.Calibre
 import qualified Database.SQLite.Simple               as Sql
-import           Import                               hiding (putStrLn)
+import           Import                          hiding (requestHeaders)
 import           Language.Haskell.TH.Syntax           (qLocation)
-import           Network.Wai                          (Middleware)
+import           Network.Wai                          (Middleware, Request (..))
 import           Network.Wai.Handler.Warp             (Settings,
                                                        defaultSettings,
                                                        defaultShouldDisplayException,
                                                        getPort, runSettings,
                                                        setOnException, setPort)
 import           Network.Wai.Middleware.Gzip          (def, gzip)
-import           Network.Wai.Middleware.RequestLogger (logStdoutDev)
-import           Prelude                              (putStrLn)
+import           Network.Wai.Middleware.RequestLogger (OutputFormatter,
+                                                       RequestLoggerSettings (outputFormat), 
+                                                       OutputFormat(CustomOutputFormat),
+                                                       mkRequestLogger)
 import           System.Log.FastLogger                (defaultBufSize,
                                                        newStdoutLoggerSet,
                                                        toLogStr)
@@ -58,9 +62,27 @@ makeApplication foundation = do
 makeLogWare :: App -> IO Middleware
 makeLogWare foundation =
     if appDevelopment $ appSettings foundation then
-        return logStdoutDev
+        mkRequestLogger $ def {
+            outputFormat =  CustomOutputFormat logWareFormat
+        }
     else
         return id
+
+logWareFormat :: OutputFormatter
+logWareFormat _ req status _ =
+    toLogStr (requestMethod req) <> toLogStr (" " :: Text)
+    <> toLogStr (rawPathInfo req) <> toLogStr ("\n" :: Text)
+    <> mconcat (logHeader <$> headers)
+    <> toLogStr ("\t => " :: Text) <> toLogStr (show $ statusCode status) <> toLogStr ("\n" :: Text)
+    where
+        headers = ["Range"]
+        logHeader h = fromMaybe mempty $ do
+            value <- lookup h (requestHeaders req)
+            return $ toLogStr ("\t" :: Text) 
+                <> toLogStr (CI.original h) 
+                <> toLogStr (": " :: Text) 
+                <> toLogStr value 
+                <> toLogStr ("\n" :: Text)
 
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
@@ -90,5 +112,5 @@ develMain = develMainHelper $ do
 appMain :: IO ()
 appMain = do
     (wsettings, app) <- getAppAndWarpSettings
-    putStrLn ("Running on port " ++ show (getPort wsettings))
+    putStrLn $ T.pack $ "Running on port " ++ show (getPort wsettings)
     runSettings wsettings app

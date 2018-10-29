@@ -113,10 +113,13 @@ getBookRawFileZipR _id zipFilePath = do
         _ ->
             invalidArgs ["Not a ZIP file"]
 
+
 getBookMp3FileR :: Int -> Handler TypedContent
 getBookMp3FileR _id = do
     c <- getBook _id >>= getAudiobookMp3
     replaceOrAddHeader "Accept-Ranges" "none"
+    rangeHeader <- lookupHeader "Range"
+    when (isJust rangeHeader) rangeNotSatisfiable
     respondSource "audio/mpeg" $ mapOutput (Chunk . BSB.byteString) c
 
 getBookOverlayR :: Int -> Handler Html
@@ -140,7 +143,7 @@ bookFeed :: UTCTime -> CalibreBook -> Feed (Route App)
 bookFeed now book = Feed
     { feedTitle = bookTitle book
     , feedLinkSelf = BookRssR _id
-    , feedLinkHome = BookRssR _id
+    , feedLinkHome = HomeR
     , feedAuthor = ""
     , feedDescription = ""
     , feedLanguage = "en"
