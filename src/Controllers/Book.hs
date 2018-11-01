@@ -34,7 +34,7 @@ type FileSize = Integer
 checkRange :: FileSize -> Integer -> Integer -> Handler (Integer, Integer, Status)
 checkRange fileSize from to
     | 0 <= from && from <= to && to <= fileSize= do
-        replaceOrAddHeader "Content-Range" $ T.pack $ show from ++ "-" ++ show to ++ "/" ++ show fileSize
+        replaceOrAddHeader "Content-Range" $ tshow from ++ "-" ++ tshow to ++ "/" ++ tshow fileSize
         return (from, to, status206)
     | otherwise = rangeNotSatisfiable
 
@@ -93,7 +93,7 @@ getBookRawFileR :: Int -> Handler TypedContent
 getBookRawFileR _id = do
     abType <- getBook _id
         >>= getAudiobookType
-        >>= either (invalidArgs . (:[]) . T.pack . show) return
+        >>= either (invalidArgs . (:[]) . tshow) return
     case abType of
         SingleFile _ filePath ->
             sendFileMimeConduit filePath
@@ -104,7 +104,7 @@ getBookRawFileZipR :: Int -> Text -> Handler TypedContent
 getBookRawFileZipR _id zipFilePath = do
     abType <- getBook _id
         >>= getAudiobookType
-        >>= either (invalidArgs . (:[]) . T.pack . show) return
+        >>= either (invalidArgs . (:[]) . tshow) return
     case abType of
         Zip _ zipPath _ -> do
             let mime = defaultMimeLookup zipFilePath

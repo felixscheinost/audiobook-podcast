@@ -9,7 +9,6 @@ module Application where
 
 import           Control.Monad.Logger                 (liftLoc)
 import qualified Data.CaseInsensitive                 as CI
-import qualified Data.Text                            as T
 import           Database.Calibre
 import qualified Database.SQLite.Simple               as Sql
 import           Import                          hiding (requestHeaders)
@@ -112,5 +111,5 @@ develMain = develMainHelper $ do
 appMain :: IO ()
 appMain = do
     (wsettings, app) <- getAppAndWarpSettings
-    putStrLn $ T.pack $ "Running on port " ++ show (getPort wsettings)
+    putStrLn $ "Running on port " ++ tshow (getPort wsettings)
     runSettings wsettings app
