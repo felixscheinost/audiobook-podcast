@@ -1,6 +1,8 @@
 BookView: Books
 AuthorView: Authors
 SeriesView: Series
+ConversionsView: Conversions
+SettingsView: Settings
 
 Search: Search
 

@@ -1,2 +1,12 @@
-^{widget}
+<div .container-fluid>
+    <div .row>
+        <nav .col-md-2 .sidebar.bg-light>
+            <ul .nav>
+                $forall m <- menuItems
+                    <li .nav-item :isActive m:.active>
+                        <a .nav-link href=@{menuItemRoute m}>
+                            <span *{menuClass m}>
+                            _{menuItemMsg m}
+        <main .col-md-10>
+            ^{widget}
                 

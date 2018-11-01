@@ -9,31 +9,10 @@ import           Database.Calibre
 import           Foundation
 import           Yesod.Core
 
-msgForView :: Route App -> AppMessage
-msgForView BookViewR             = MsgBookView
-msgForView AuthorViewR           = MsgAuthorView
-msgForView SeriesViewR           = MsgSeriesView
-msgForView (SingleSeriesViewR _) = MsgSeriesView
-msgForView _                     = MsgBookView
-
-views :: [Route App]
-views =
-    [ BookViewR
-    , AuthorViewR
-    , SeriesViewR
-    ]
-
 showSearchBar :: Handler Widget
-showSearchBar = do
-    currentRoute <- getCurrentRoute
+showSearchBar =
     return [whamlet|
-        <div .input-group.w-100 #search-bar>
-            <div .input-group-prepend>
-                <button .btn.btn-outline-secondary.dropdown-toggle type=button data-toggle=dropdown aria-haspopup=true aria-expanded=false>
-                    _{maybe MsgBookView msgForView currentRoute}
-                <div .dropdown-menu>
-                    $forall route <- views
-                        <a .dropdown-item :Just route == currentRoute:.active href=@{route}> _{msgForView route}
+        <div .w-100 #search-bar>
             <input type="text" .form-control placeholder=_{MsgSearch}>
     |]
 

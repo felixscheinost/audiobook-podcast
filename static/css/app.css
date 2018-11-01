@@ -3,6 +3,7 @@ body {
 }
 
 #search-bar {
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 
@@ -73,4 +74,39 @@ body {
 
 .book-modal a {
     margin: 10px 10px 10px 0;
+}
+
+.sidebar {
+    height: 100vh;
+    padding: 0;
+}
+
+.sidebar li {
+    display: block;
+    width: 100%;
+    padding: 0;
+}
+
+.sidebar li a {
+    color: black;
+    -webkit-transition: .2s ease-out;
+    transition: .2s ease-out;
+    font-weight: 600;
+}
+
+.sidebar li.active a {
+    background-color: #e4e4e4;
+}
+
+.sidebar li a:hover {
+    background-color: #e4e4e4;
+}
+
+.sidebar li.active a:hover {
+    background-color: #c9c3c3
+}
+
+.sidebar .svg-inline--fa {
+    width: 20px;
+    margin-right: 5px;
 }
