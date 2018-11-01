@@ -51,7 +51,7 @@ showBooks books =
 getBookViewR :: Handler Html
 getBookViewR = do
     searchBar <- showSearchBar
-    books <- runSQL getAllAudiobooks >>= showBooks
+    books <- runSQL listMp3Books >>= showBooks
     defaultLayout [whamlet|
         ^{searchBar}
         ^{books}
@@ -60,7 +60,7 @@ getBookViewR = do
 getAuthorViewR :: Handler Html
 getAuthorViewR = do
     searchBar <- showSearchBar
-    books <- runSQL getAllAudiobooks
+    books <- runSQL listMp3Books
     defaultLayout [whamlet|
         ^{searchBar}
         <div .row #audiobook-container>
@@ -73,7 +73,7 @@ getAuthorViewR = do
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
     searchBar <- showSearchBar
-    seriesWithBookIds <- runSQL getAllSeries
+    seriesWithBookIds <- runSQL listSeriesWithMp3Books
     defaultLayout [whamlet|
         ^{searchBar}
         <div .row #series-container>
@@ -91,7 +91,7 @@ getSeriesViewR = do
 getSingleSeriesViewR :: Int -> Handler Html
 getSingleSeriesViewR _seriesId = do
     searchBar <- showSearchBar
-    books <- runSQL (getAllAudiobooksInSeries _seriesId) >>= showBooks
+    books <- runSQL (listMp3BooksInSeries _seriesId) >>= showBooks
     defaultLayout [whamlet|
         ^{searchBar}
         ^{books}

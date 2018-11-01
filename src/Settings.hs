@@ -23,7 +23,7 @@ data AppSettings = AppSettings
     { appPort                 :: Int
     , appCalibreLibraryFolder :: String
     , appDevelopment          :: Bool
-    , appMp3Quality       :: Int
+    , appMp3Quality           :: Int
     }
 
 instance FromJSON AppSettings where

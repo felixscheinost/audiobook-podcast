@@ -15,7 +15,7 @@ module Database.Calibre (
 
 import qualified Data.Text                   as T
 import           Database.Beam
-import           Database.Calibre.BookFormat (toFileExtension)
+import           Database.Calibre.BookFormat (bookFormatFileExtension)
 import           Database.Calibre.Queries
 import           Database.Calibre.Tables
 import           Import
@@ -30,7 +30,7 @@ bookFullPath BookAndData{..} = do
     return $ appCalibreLibraryFolder (appSettings app)
         </> T.unpack (bookPath bdBook)
         </> T.unpack (dataName bdData)
-        <.> T.unpack (toFileExtension $ dataFormat bdData)
+        <.> T.unpack (bookFormatFileExtension $ dataFormat bdData)
 
 bookCover :: BookAndData -> Handler FilePath
 bookCover ab = (`replaceFileName` "cover.jpg") <$> bookFullPath ab

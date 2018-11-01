@@ -6,8 +6,8 @@
 
 module Database.Calibre.BookFormat(
     CalibreBookFormat(..),
-    supportedCalibreBookFormats,
-    toFileExtension
+    allCalibreBookFormats,
+    bookFormatFileExtension
 ) where
 
 import           Data.Foldable                    (asum)
@@ -20,24 +20,29 @@ import           Database.SQLite.Simple           (SQLData (..))
 import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.Internal  (Field (..))
 import           Database.SQLite.Simple.Ok
+import           Types                            (AudioFormat (..),
+                                                   audioFileExtension,
+                                                   supportedAudioFormats)
 
 data CalibreBookFormat
     = ZIP
-    | MP3
-    | M4A
-    | M4B
-    deriving (Show, Enum, Eq)
+    | Audio AudioFormat
+    deriving (Show, Eq)
 
-supportedCalibreBookFormats :: [CalibreBookFormat]
-supportedCalibreBookFormats = enumFrom $ toEnum 0
+allCalibreBookFormats :: [CalibreBookFormat]
+allCalibreBookFormats = ZIP : (Audio <$> supportedAudioFormats)
 
-toFileExtension :: CalibreBookFormat -> Text
-toFileExtension = T.toLower . T.pack . show
+bookFormatFileExtension :: CalibreBookFormat -> Text
+bookFormatFileExtension ZIP            = "zip"
+bookFormatFileExtension (Audio format) = T.pack $ audioFileExtension format
+
+toDatabaseValue :: CalibreBookFormat -> Text
+toDatabaseValue = T.toUpper . bookFormatFileExtension
 
 instance FromField CalibreBookFormat where
     fromField f@(Field (SQLText t) _) =
-        asum $ flip map supportedCalibreBookFormats $ \format ->
-            if T.pack (show format) == t then
+        asum $ flip map allCalibreBookFormats $ \format ->
+            if toDatabaseValue format == t then
                 Ok format
             else
                 returnError ConversionFailed f "unrecognized book format"
@@ -46,6 +51,6 @@ instance FromField CalibreBookFormat where
 instance FromBackendRow Sqlite CalibreBookFormat
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be CalibreBookFormat where
-    sqlValueSyntax = sqlValueSyntax . T.pack . show
+    sqlValueSyntax = sqlValueSyntax . toDatabaseValue
 
 instance (IsSql92ExpressionSyntax be) => HasSqlEqualityCheck be CalibreBookFormat

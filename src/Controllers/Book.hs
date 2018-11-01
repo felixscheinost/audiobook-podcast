@@ -5,23 +5,18 @@
 
 module Controllers.Book where
 
-import           Audiobook
 import qualified Data.ByteString.Builder as BSB
 import           Data.Conduit            (Flush (..))
 import           Data.Conduit.Binary     (sourceFileRange)
 import qualified Data.Text               as T
 import           Data.Time.Clock         (getCurrentTime)
-import           Database.Calibre
 import           Import                  hiding (count, fileSize)
 import qualified Network.HTTP.Types      as HTTP
 import           Network.Mime            (defaultMimeLookup)
 import           System.FilePath         (takeFileName)
 import           System.IO               (IOMode (ReadMode))
 import           Yesod.RssFeed
-import qualified Zip
-
-getBook :: Int -> Handler BookAndData
-getBook _id = runSQL (getAudiobook _id) >>= maybe notFound return
+import qualified Audiobook as AB
 
 rangeNotSatisfiable :: Handler a
 rangeNotSatisfiable = sendResponseStatus status416 ("" :: Text)
@@ -94,49 +89,18 @@ sendFileMimeConduit fp = do
     sendFileConduit mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
-getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
+getBookCoverR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abCover)
 
-getBookRawFileR :: Int -> Handler TypedContent
-getBookRawFileR _id = do
-    abType <- getBook _id
-        >>= getAudiobookType
-        >>= either (invalidArgs . (:[]) . tshow) return
-    case abType of
-        SingleFile _ filePath ->
-            sendFileMimeConduit filePath
-        _ ->
-            invalidArgs ["Not a single file"]
-
-getBookRawFileZipR :: Int -> Text -> Handler TypedContent
-getBookRawFileZipR _id zipFilePath = do
-    abType <- getBook _id
-        >>= getAudiobookType
-        >>= either (invalidArgs . (:[]) . tshow) return
-    case abType of
-        Zip _ zipPath _ -> do
-            let mime = defaultMimeLookup zipFilePath
-            (source, uncompressedSize) <- liftIO $ Zip.getSingleFile zipPath (T.unpack zipFilePath)
-            replaceOrAddHeader "Content-Length" $ tshow uncompressedSize
-            respondSource mime $ mapOutput (Chunk . BSB.byteString) source
-        _ ->
-            invalidArgs ["Not a ZIP file"]
-
-
-getBookMp3FileR :: Int -> Handler TypedContent
-getBookMp3FileR _id = do
-    c <- getBook _id >>= getAudiobookMp3
-    replaceOrAddHeader "Accept-Ranges" "none"
-    rangeHeader <- lookupHeader "Range"
-    when (isJust rangeHeader) rangeNotSatisfiable
-    respondSource "audio/mpeg" $ mapOutput (Chunk . BSB.byteString) c
+getBookFileR :: Int -> Handler TypedContent
+getBookFileR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abPath)
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
-    BookAndData{..} <- getBook _id
+    ab <- AB.getAudiobook _id
     defaultLayout [whamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{ bookTitle bdBook} (#{_id})
+                <h5 .modal-title> #{ abTitle ab} (#{_id})
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
@@ -144,38 +108,36 @@ getBookOverlayR _id = do
                 <div>
                     <div .row>
                         <a .btn.btn-primary href=@{BookRssR _id}> _{MsgCopyRSSLink}
-                        <a .btn.btn-primary href=@{BookMp3FileR _id}> _{MsgDownloadMP3}
+                        <a .btn.btn-primary href=@{BookFileR _id}> _{MsgDownloadMP3}
     |]
 
-bookFeed :: UTCTime -> CalibreBook -> Feed (Route App)
-bookFeed now book = Feed
-    { feedTitle = bookTitle book
-    , feedLinkSelf = BookRssR _id
+bookFeed :: UTCTime -> Audiobook -> Feed (Route App)
+bookFeed now Audiobook{..} = Feed
+    { feedTitle = abTitle
+    , feedLinkSelf = BookRssR abId
     , feedLinkHome = HomeR
     , feedAuthor = ""
     , feedDescription = ""
     , feedLanguage = "en"
     , feedUpdated = now
-    , feedLogo = Just (BookCoverR _id, bookTitle book)
+    , feedLogo = Just (BookCoverR abId, abTitle)
     , feedEntries = [
         FeedEntry
-        { feedEntryLink = BookRssR _id
+        { feedEntryLink = BookRssR abId
         , feedEntryUpdated = now
-        , feedEntryTitle = bookTitle book
+        , feedEntryTitle = abTitle
         , feedEntryContent = ""
         , feedEntryEnclosure = Just $ EntryEnclosure
-            { enclosedUrl = BookMp3FileR _id
+            { enclosedUrl = BookFileR abId
             , enclosedSize = 0
             , enclosedMimeType = "audio/mpeg"
             }
         }
     ]
     }
-    where
-        _id = bookId book
 
 getBookRssR :: Int -> Handler RepRss
 getBookRssR _id = do
-    b <- getBook _id
+    b <- AB.getAudiobook _id
     now <- liftIO getCurrentTime
-    rssFeed $ bookFeed now (bdBook b)
+    rssFeed $ bookFeed now b

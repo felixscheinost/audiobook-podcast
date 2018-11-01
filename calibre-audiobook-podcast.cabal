@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a0f96a5552968fa5985fecd6757ae7f1271102cb15bbc46e62420f317afe09ec
+-- hash: c9e26215216e68ace0e77cb349f99fb36cf9e8a67cb63d2b385448f0eb77e478
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -35,6 +35,7 @@ library
       Import.NoFoundation
       Settings
       Settings.StaticFiles
+      Types
       Zip
   other-modules:
       Paths_calibre_audiobook_podcast
