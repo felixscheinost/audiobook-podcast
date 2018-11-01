@@ -60,20 +60,23 @@ parseRange fileSize = do
             _ ->
                 rangeNotSatisfiable
     (from, to, status) <- maybe noRangeHeader (handleParseResult . HTTP.parseByteRanges) range
-    return (from, to - from + 1, status)
+    let count = to - from + 1
+    replaceOrAddHeader "Content-Length" $ tshow count
+    return (from, count, status)
 
 -- Respond with a file; Take the mime type from the file extension.
 -- This uses the sendfile(2) call on Linux.
--- Had sporadic problems with high CPU (probably GC)
--- Switched to custom function `sendFileMimeConduit` which reads and sends the file manually
--- => Slower than using sendfile(2)
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendFile mime fp
 
-sendFileMimeConduit :: FilePath -> Handler TypedContent
-sendFileMimeConduit fp = do
+-- Had sporadic problems with high CPU (probably GC) using `sendFile`
+-- This sends the file manually using a conduit
+-- => Slower than using sendfile(2) 
+--   => TODO: Switch back to `sendFile` 
+sendFileConduit :: ContentType -> FilePath -> Handler TypedContent
+sendFileConduit mime fp = do
     fileSize <- withFile fp ReadMode hFileSize
     notFFmpeg <- (/= Just "calibre_ffmpeg") <$> lookupHeader "User-Agent"
     -- even if I completely turned off all range logic, just the "Accept-Ranges" header.
@@ -81,10 +84,14 @@ sendFileMimeConduit fp = do
     (offset, count, status) <-
         if notFFmpeg then parseRange fileSize
         else return (0, fileSize, status200)
-    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendResponseStatus status $ TypedContent mime $ ContentSource $
         mapOutput (Chunk . BSB.byteString) $
             sourceFileRange fp (Just offset) (Just count)
+
+sendFileMimeConduit :: FilePath -> Handler TypedContent
+sendFileMimeConduit fp = do
+    let mime = defaultMimeLookup $ T.pack $ takeFileName fp
+    sendFileConduit mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = getBook _id >>= bookCover >>= sendFileMime
@@ -108,8 +115,9 @@ getBookRawFileZipR _id zipFilePath = do
     case abType of
         Zip _ zipPath _ -> do
             let mime = defaultMimeLookup zipFilePath
-            conduit <- liftIO $ Zip.getSingleFile zipPath (T.unpack zipFilePath)
-            respondSource mime $ mapOutput (Chunk . BSB.byteString) conduit
+            (source, uncompressedSize) <- liftIO $ Zip.getSingleFile zipPath (T.unpack zipFilePath)
+            replaceOrAddHeader "Content-Length" $ tshow uncompressedSize
+            respondSource mime $ mapOutput (Chunk . BSB.byteString) source
         _ ->
             invalidArgs ["Not a ZIP file"]
 

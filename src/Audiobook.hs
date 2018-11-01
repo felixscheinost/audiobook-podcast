@@ -110,7 +110,6 @@ getAudiobookMp3 book@BookAndData{..} = do
             liftIO $ ffmpeg ffmpegArgs
         Zip Mp3 _ files -> do
             urlRender <- getUrlRender
-            mp3Quality <- appMp3Quality . appSettings <$> getYesod
             let urls = map (urlRender . BookRawFileZipR (bookId bdBook) . T.pack) files
             let lineFor url = T.concat ["file '", url, "'"]
             let fileContents = T.intercalate "\n" $ map lineFor urls
@@ -121,7 +120,6 @@ getAudiobookMp3 book@BookAndData{..} = do
                                      , "-protocol_whitelist", "file,tcp,http"
                                      , "-i", tempFileInput
                                      , "-f", "mp3"
-                                     --, "-q:a", show mp3Quality
                                      , "-c", "copy"
                                      , "-vn"
                                      , "-"
