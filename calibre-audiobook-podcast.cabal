@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c9e26215216e68ace0e77cb349f99fb36cf9e8a67cb63d2b385448f0eb77e478
+-- hash: 8d0471e46ee009785c99d9656c57f7280295381989bea54b9496a1881230d3de
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -24,6 +24,9 @@ library
   exposed-modules:
       Application
       Audiobook
+      Background
+      Background.Conversion
+      Background.Foundation
       Controllers.Book
       Controllers.Home
       Database.Calibre

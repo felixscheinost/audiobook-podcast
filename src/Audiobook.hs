@@ -5,20 +5,24 @@
 
 module Audiobook(
     listAudiobooks, getAudiobook,
-    Audiobook(..)
+    Audiobook(..),
+    module Types
 ) where
 
-import Database.Calibre (BookAndData)
-import Database.Calibre.BookFormat (CalibreBookFormat(ZIP, Audio))
-import qualified Database.Calibre              as DB
-import qualified Data.Maybe as M
-import           Import                       
+import qualified Data.Maybe                  as M
+import           Database.Calibre            (BookAndData)
+import qualified Database.Calibre            as DB
+import           Database.Calibre.BookFormat (CalibreBookFormat (Audio, ZIP))
+import           Import
+import           Types
 
+-- | Return only Audiobooks that should be shown on the FE: MP3 Audiobooks
 listAudiobooks :: Handler [Audiobook]
 listAudiobooks = do
     mp3Books <- runSQL (DB.listBooks [Audio Mp3])
     M.catMaybes <$> mapM calibreBookToAudiobook mp3Books
 
+-- | Return only Audiobooks that should be shown on the FE: MP3 Audiobooks
 getAudiobook :: Int -> Handler Audiobook
 getAudiobook _id = do
     book <- runSQL (DB.getBook _id) >>= maybe notFound return
@@ -29,12 +33,13 @@ calibreBookToAudiobook bd = do
     let abId = Just $ DB.bookId $ DB.bdBook bd
     let abTitle = Just $ DB.bookTitle $ DB.bdBook bd
     abPath <- Just <$> DB.bookFullPath bd
+    -- This is the only "real" Maybe value
     let abFormat = getAudioFormat $ DB.dataFormat $ DB.bdData bd
     abCover <- Just <$> DB.bookCover bd
     return $ Audiobook <$> abId <*> abTitle <*> abPath <*> abFormat <*> abCover
 
 getAudioFormat :: CalibreBookFormat -> Maybe AudioFormat
-getAudioFormat ZIP = Nothing
+getAudioFormat ZIP       = Nothing
 getAudioFormat (Audio f) = Just f
 
 -- getAudiobookMp3 :: BookAndData -> Handler (ConduitT () ByteString Handler ())

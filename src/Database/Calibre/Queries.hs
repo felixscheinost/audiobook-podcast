@@ -46,7 +46,6 @@ listBooks formats conn = mapBookAndData $ runBeamSqlite conn $ runSelectReturnin
     guard_ (dataFormat d `in_` (val_ <$> formats))
     return (b, d)
 
-
 listMp3Books :: Connection -> IO [BookAndData]
 listMp3Books = listBooks [Audio Mp3]
 
