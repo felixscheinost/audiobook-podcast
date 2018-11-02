@@ -12,6 +12,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Calibre-Audiobook-Podcast</title>
     ^{pageHead pc}
+    <link href="@{StaticR css_fontawesome_all_min_css}" rel="stylesheet">
     <link href="@{StaticR css_bootstrap_litera_min_css}" rel="stylesheet">
     <link href="@{StaticR css_bootstrap_fs_modal_min_css}" rel="stylesheet">
     <link href="@{StaticR css_app_css}" rel="stylesheet">
@@ -24,4 +25,3 @@
       <script src="@{StaticR js_jquery_min_js}">
       <script src="@{StaticR js_bootstrap_bundle_min_js}">
       <script src="@{StaticR js_app_js}">
-      <script src="@{StaticR js_fontawesome_free_5_4_1_all_min_js}">

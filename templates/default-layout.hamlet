@@ -5,7 +5,7 @@
                 $forall m <- menuItems
                     <li .nav-item :isActive m:.active>
                         <a .nav-link href=@{menuItemRoute m}>
-                            <span *{menuClass m}>
+                            <i *{menuClass m}>
                             _{menuItemMsg m}
         <main .col-md-10>
             ^{widget}
