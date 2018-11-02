@@ -5,7 +5,7 @@
 
 module Database.Calibre.Queries (
     getBook, 
-    listBooks, listMp3Books,
+    listBooks, listMp3Books, listBooksToConvert,
     listSeries, listSeriesWithMp3Books,
     listBooksInSeries, listMp3BooksInSeries
 ) where
@@ -48,6 +48,20 @@ listBooks formats conn = mapBookAndData $ runBeamSqlite conn $ runSelectReturnin
 
 listMp3Books :: Connection -> IO [BookAndData]
 listMp3Books = listBooks [Audio Mp3]
+
+-- | Returns books that have one or more of the source formats but none of the target format
+listBooksToConvert :: [CalibreBookFormat] -> CalibreBookFormat -> Connection -> IO [CalibreBook]
+listBooksToConvert sourceFormats targetFormat conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+    (b, sumTarget) <- aggregate_ (\(b, d) -> 
+                ( group_ b
+                , sum_ (if_ [(dataFormat d ==. val_ targetFormat) `then_` val_ (1 :: Int)] (else_ (val_ 0)))
+                )) $ do
+        b <- books
+        d <- joinAudiobookData b
+        guard_ (dataFormat d `in_` (val_ <$> sourceFormats))
+        return (b, d)
+    guard_ (fromMaybe_ (val_ 0) sumTarget ==. val_ 0)
+    return b
 
 -- Returns each series with a comma-separated list of IDs
 -- TODO: Return only one book per series?

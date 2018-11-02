@@ -34,3 +34,12 @@ useYesodLogger logger loc logSrc logLvl logStr = do
 
 runBackground :: MonadIO m => Background -> ReaderT Background (LoggingT m) a -> m a
 runBackground b r = runLoggingT (runReaderT r b) (useYesodLogger $ backgroundLogger b)
+
+runSQL :: MonadBackground m => (Sql.Connection -> IO a) -> m a
+runSQL f = do
+    background <- ask
+    liftIO $ do
+        conn <- takeMVar (backgroundDbConnection background)
+        res <- f conn
+        putMVar (backgroundDbConnection background) conn
+        return res
