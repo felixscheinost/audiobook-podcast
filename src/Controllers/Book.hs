@@ -5,6 +5,8 @@
 
 module Controllers.Book where
 
+import           Audiobook               (Audiobook(..))
+import qualified Audiobook               as AB
 import qualified Data.ByteString.Builder as BSB
 import           Data.Conduit            (Flush (..))
 import           Data.Conduit.Binary     (sourceFileRange)
@@ -16,7 +18,6 @@ import           Network.Mime            (defaultMimeLookup)
 import           System.FilePath         (takeFileName)
 import           System.IO               (IOMode (ReadMode))
 import           Yesod.RssFeed
-import qualified Audiobook as AB
 
 rangeNotSatisfiable :: Handler a
 rangeNotSatisfiable = sendResponseStatus status416 ("" :: Text)
@@ -68,8 +69,8 @@ sendFileMime fp = do
 
 -- Had sporadic problems with high CPU (probably GC) using `sendFile`
 -- This sends the file manually using a conduit
--- => Slower than using sendfile(2) 
---   => TODO: Switch back to `sendFile` 
+-- => Slower than using sendfile(2)
+--   => TODO: Switch back to `sendFile`
 sendFileConduit :: ContentType -> FilePath -> Handler TypedContent
 sendFileConduit mime fp = do
     fileSize <- withFile fp ReadMode hFileSize
@@ -97,10 +98,10 @@ getBookFileR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abPath)
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
     ab <- AB.getAudiobook _id
-    defaultLayout [whamlet|
+    pc <- widgetToPageContent [whamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{ abTitle ab} (#{_id})
+                <h5 .modal-title> #{abTitle ab} (#{_id})
                 <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
@@ -109,6 +110,9 @@ getBookOverlayR _id = do
                     <div .row>
                         <a .btn.btn-primary href=@{BookRssR _id}> _{MsgCopyRSSLink}
                         <a .btn.btn-primary href=@{BookFileR _id}> _{MsgDownloadMP3}
+    |] 
+    withUrlRenderer [hamlet|
+        ^{pageBody pc}
     |]
 
 bookFeed :: UTCTime -> Audiobook -> Feed (Route App)
