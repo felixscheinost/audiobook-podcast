@@ -70,7 +70,7 @@ getBookNeedConvertR = do
             ^{searchWidget (Just convertBooksButtons) }
             <div .row #audiobook-container>
                 $forall Audiobook{abId=abId} <- books
-                    <div .col-xl-2.col-lg-3.col-md-4.col-6 .audiobook>
+                    <div .col-xl-2.col-lg-3.col-md-4.col-6 .audiobook data-book-id=#{abId}>
                         <img src=@{BookCoverR abId}>
     |]
 

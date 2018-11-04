@@ -23,13 +23,6 @@ data App = App
 mkYesodData "App" $(parseRoutesFile "routes")
 mkMessage "App" "messages" "en"
 
-data MenuItem = MenuItem
-    { menuItemMsg     :: AppMessage
-    , menuItemRoute   :: Route App
-    , menuItemIcon    :: Text
-    , menuItemMatcher :: Maybe (Route App -> Bool)
-    }
-
 instance Yesod App where
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
