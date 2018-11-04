@@ -42,17 +42,19 @@ getSeriesViewR :: Handler Html
 getSeriesViewR = do
     seriesWithBookIds <- AB.listSeries
     defaultLayout [whamlet|
-        <div .w-100 #search-bar>
-            <input type="text" .form-control placeholder=_{MsgSearch}>
-        <div .row #series-container>
-            $forall (series, bookIds) <- seriesWithBookIds
-                <a href=@{SingleSeriesViewR (seriesId series)} .series .text-dark .text-center .font-weight-bold>
-                    $case take 1 $ map TR.decimal $ T.splitOn "," bookIds
-                        $of [(Right (bookId, _))]
-                            <img .img src=@{BookCoverR bookId}>
-                        $of _
-                            <div .img style="height: 250px; width: 158px">
-                    #{seriesName series}
+        <div .container>
+            <div .row .d-flex #toolbar>
+                <div .col-md-4 #search>
+                    <input type="text" .form-control placeholder=_{MsgSearch}>
+            <div .row #series-container>
+                $forall (series, bookIds) <- seriesWithBookIds
+                    <a href=@{SingleSeriesViewR (seriesId series)} .series .text-dark .text-center .font-weight-bold>
+                        $case take 1 $ map TR.decimal $ T.splitOn "," bookIds
+                            $of [(Right (bookId, _))]
+                                <img .img src=@{BookCoverR bookId}>
+                            $of _
+                                <div .img style="height: 250px; width: 158px">
+                        #{seriesName series}
 
     |]
 

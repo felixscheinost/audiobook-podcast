@@ -29,7 +29,7 @@ body {
 }
 
 #series-container {
-    margin: 0 15px;
+    margin: 0;
 }
 
 .audiobook {
@@ -57,7 +57,7 @@ body {
 .series {
     padding: 0;
     margin-bottom: 15px;
-    margin-left: 15px;
+    margin-right: 8px;
 }
 
 .series .img {
