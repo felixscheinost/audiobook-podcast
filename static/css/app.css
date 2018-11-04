@@ -142,3 +142,34 @@ body {
 .selectable .audiobook:not(.selected) img {
     opacity: 0.5;
 }
+
+/** CONVERSION **/
+
+.conversion-job {
+    background-color: white;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+.conversion-job tr td:first-child {
+    width: 25px;
+}
+
+.conversion-job tr td {
+    padding-top: 4px;
+}
+
+.conversion-job ul {
+    padding: 0;
+    list-style-type: none;
+}
+
+.conversion-job ul li {
+    margin-top: 5px;
+}
+
+.conversion-job .progress {
+    height: 15px;
+    width: 150px;
+}

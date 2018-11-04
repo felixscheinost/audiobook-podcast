@@ -9,6 +9,10 @@ Search: Search
 Cancel: Cancel
 Convert: Convert
 
+ConversionRunning: Running
+ConversionQueued: Queued
+ConversionFinished: Finished
+
 CopyRSSLink: Copy link to podcast
 DownloadMP3: Download MP3
 

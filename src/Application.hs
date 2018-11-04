@@ -33,6 +33,7 @@ import           System.Log.FastLogger                (defaultBufSize,
 -- Don't forget to add new modules to your cabal file
 import           Handler.BooksViews
 import           Handler.SingleBook
+import           Handler.Conversion
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -45,7 +46,7 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
+    appDbConnection <- Sql.open (libraryPath appSettings ++ "?mode=ro") >>= newMVar
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
