@@ -110,6 +110,6 @@ appMain = do
     foundation <- getAppSettings >>= makeFoundation
     app <- makeApplication foundation
     let wsettings = warpSettings foundation
-    forkBackgroundJobs foundation
+    --forkBackgroundJobs foundation
     putStrLn $ "Running on port " ++ tshow (getPort wsettings)
     runSettings wsettings app

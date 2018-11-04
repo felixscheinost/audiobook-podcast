@@ -64,12 +64,6 @@ instance Table CalibreBookDataT where
     data PrimaryKey CalibreBookDataT f = CalibreBookDataId (Columnar f Int) deriving Generic
     primaryKey = CalibreBookDataId . dataId
 
-
-data BookAndData = BookAndData
-    { bdBook :: CalibreBook
-    , bdData :: CalibreBookData
-    }
-
 -------------------------------------
 -- SERIES
 ------------------------------------

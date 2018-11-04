@@ -8,53 +8,42 @@ import qualified Data.Text.Read   as TR
 import           Database.Calibre
 import           Foundation
 import           Yesod.Core
+import Audiobook (Audiobook(..))
+import qualified Audiobook as AB
 
-showSearchBar :: Handler Widget
-showSearchBar =
-    return [whamlet|
-        <div .w-100 #search-bar>
-            <input type="text" .form-control placeholder=_{MsgSearch}>
-    |]
-
-showBooks :: [BookAndData] -> Handler Widget
-showBooks books =
+showAudioBooks :: [Audiobook] -> Handler Widget
+showAudioBooks books =
     return [whamlet|
         <div .row #audiobook-container>
-            $forall BookAndData{bdBook} <- books
-                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId bdBook)}>
-                    <div .img-wrapper style="width: 180px">
-                        <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
+            $forall Audiobook{abId=abId} <- books
+                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR abId}>
+                    <div .img-wrapper>
+                        <img style="height: 250px" src=@{BookCoverR abId}>
+    |]
+
+booksView :: Handler [Audiobook] -> Handler Html
+booksView books = do
+    booksW <- books >>= showAudioBooks
+    defaultLayout [whamlet|
+        <div .container>
+            <div .row .d-flex #toolbar>
+                <div .col-md-4 #search>
+                    <input type="text" .form-control placeholder=_{MsgSearch}>
+                <div .col-md-8>
+                    <button .float-left.btn.btn-primary #select>_{MsgSelectBooks}
+            ^{booksW}
     |]
 
 
 getBookViewR :: Handler Html
-getBookViewR = do
-    searchBar <- showSearchBar
-    books <- runSQL listMp3Books >>= showBooks
-    defaultLayout [whamlet|
-        ^{searchBar}
-        ^{books}
-    |]
-
-getAuthorViewR :: Handler Html
-getAuthorViewR = do
-    searchBar <- showSearchBar
-    books <- runSQL listMp3Books
-    defaultLayout [whamlet|
-        ^{searchBar}
-        <div .row #audiobook-container>
-            $forall BookAndData{bdBook} <- books
-                <div .audiobook .ajax-modal data-modal-url=@{BookOverlayR (bookId bdBook)}>
-                    <img style="height: 250px" src=@{BookCoverR (bookId bdBook)}>
-    |]
-
+getBookViewR = booksView AB.listAudiobooks
 
 getSeriesViewR :: Handler Html
 getSeriesViewR = do
-    searchBar <- showSearchBar
-    seriesWithBookIds <- runSQL listSeriesWithMp3Books
+    seriesWithBookIds <- AB.listSeries
     defaultLayout [whamlet|
-        ^{searchBar}
+        <div .w-100 #search-bar>
+            <input type="text" .form-control placeholder=_{MsgSearch}>
         <div .row #series-container>
             $forall (series, bookIds) <- seriesWithBookIds
                 <a href=@{SingleSeriesViewR (seriesId series)} .series .text-dark .text-center .font-weight-bold>
@@ -68,13 +57,7 @@ getSeriesViewR = do
     |]
 
 getSingleSeriesViewR :: Int -> Handler Html
-getSingleSeriesViewR _seriesId = do
-    searchBar <- showSearchBar
-    books <- runSQL (listMp3BooksInSeries _seriesId) >>= showBooks
-    defaultLayout [whamlet|
-        ^{searchBar}
-        ^{books}
-    |]
-
+getSingleSeriesViewR _seriesId = booksView (AB.listAudiobooksInSeries _seriesId)
+    
 getHomeR :: Handler Html
 getHomeR = redirect BookViewR

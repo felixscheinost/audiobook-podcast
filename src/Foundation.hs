@@ -30,7 +30,6 @@ data MenuItem = MenuItem
     , menuItemMatcher :: Maybe (Route App -> Bool)
     }
 
-
 instance Yesod App where
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
@@ -52,20 +51,14 @@ instance Yesod App where
                     , menuItemMatcher = Just isSeriesRoute
                     }
                 , MenuItem
-                    { menuItemMsg = MsgAuthorView
-                    , menuItemRoute = AuthorViewR
-                    , menuItemIcon = "user"
-                    , menuItemMatcher = Nothing
-                    }
-                , MenuItem
                     { menuItemMsg = MsgConversionsView
-                    , menuItemRoute = AuthorViewR
+                    , menuItemRoute = SeriesViewR
                     , menuItemIcon = "cogs"
                     , menuItemMatcher = Nothing
                     }
                 , MenuItem
                     { menuItemMsg = MsgSettingsView
-                    , menuItemRoute = AuthorViewR
+                    , menuItemRoute = SeriesViewR
                     , menuItemIcon = "wrench"
                     , menuItemMatcher = Nothing
                     }

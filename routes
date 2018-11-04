@@ -7,7 +7,6 @@
 /                             HomeR                 GET
        
 /books                        BookViewR             GET
-/authors                      AuthorViewR           GET
 /series                       SeriesViewR           GET
 /series/#Int                  SingleSeriesViewR     GET
        

@@ -10,7 +10,9 @@ module Database.Calibre.BookFormat(
     bookFormatFileExtension
 ) where
 
+import qualified Data.Char                        as C
 import           Data.Foldable                    (asum)
+import qualified Data.List                        as L
 import           Data.Text                        (Text)
 import qualified Data.Text                        as T
 import           Database.Beam
@@ -20,9 +22,27 @@ import           Database.SQLite.Simple           (SQLData (..))
 import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.Internal  (Field (..))
 import           Database.SQLite.Simple.Ok
-import           Types                            (AudioFormat (..),
-                                                   audioFileExtension,
-                                                   supportedAudioFormats)
+import qualified System.FilePath                  as FP
+
+data AudioFormat
+    = Mp3
+    | M4a
+    | M4b
+    deriving (Show, Read, Eq, Enum)
+
+supportedAudioFormats :: [AudioFormat]
+supportedAudioFormats = enumFrom $ toEnum 0
+
+audioFileExtension :: AudioFormat -> String
+audioFileExtension = fmap C.toLower <$> show
+
+filePathAudioFormat :: FilePath -> Maybe AudioFormat
+filePathAudioFormat fp = L.find (correctExtension . audioFileExtension) supportedAudioFormats
+    where
+        correctExtension = (== FP.takeExtension fp)
+
+ffmpegFormatStr :: AudioFormat -> String
+ffmpegFormatStr = audioFileExtension
 
 data CalibreBookFormat
     = ZIP
@@ -41,11 +61,9 @@ toDatabaseValue = T.toUpper . bookFormatFileExtension
 
 instance FromField CalibreBookFormat where
     fromField f@(Field (SQLText t) _) =
-        asum $ flip map allCalibreBookFormats $ \format ->
-            if toDatabaseValue format == t then
-                Ok format
-            else
-                returnError ConversionFailed f "unrecognized book format"
+        case L.find ((== t) . toDatabaseValue) allCalibreBookFormats of
+            Just format -> Ok format
+            Nothing     -> returnError ConversionFailed f $ T.unpack $ t <> " isn't a supported book format"
     fromField f = returnError ConversionFailed f "expecting SQLText column type"
 
 instance FromBackendRow Sqlite CalibreBookFormat

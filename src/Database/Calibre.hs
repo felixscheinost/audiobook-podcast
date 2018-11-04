@@ -7,7 +7,7 @@ module Database.Calibre (
     libraryPath,
     bookCover,
     bookFullPath,
-    BookAndData(..),
+    BookAndData,
     module Database.Calibre.BookFormat,
     module Database.Calibre.Tables,
     module Database.Calibre.Queries
@@ -25,12 +25,12 @@ libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
 
 bookFullPath :: BookAndData -> Handler FilePath
-bookFullPath BookAndData{..} = do
+bookFullPath (book, bookData) = do
     app <- getYesod
     return $ appCalibreLibraryFolder (appSettings app)
-        </> T.unpack (bookPath bdBook)
-        </> T.unpack (dataName bdData)
-        <.> T.unpack (bookFormatFileExtension $ dataFormat bdData)
+        </> T.unpack (bookPath book)
+        </> T.unpack (dataName bookData)
+        <.> T.unpack (bookFormatFileExtension $ dataFormat bookData)
 
 bookCover :: BookAndData -> Handler FilePath
-bookCover ab = (`replaceFileName` "cover.jpg") <$> bookFullPath ab
+bookCover bd = (`replaceFileName` "cover.jpg") <$> bookFullPath bd

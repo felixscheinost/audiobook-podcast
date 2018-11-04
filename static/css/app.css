@@ -2,17 +2,30 @@ body {
     background-color: rgb(239, 239, 239);
 }
 
-#search-bar {
-    margin-top: 10px;
-    margin-bottom: 10px;
+#toolbar {
+    margin: 10px 0;
+    padding: 0;
 }
 
-#search-bar .dropdown-toggle {
-    border-radius: 0;
+#search {
+    padding: 0;
+}
+
+#select {
+    margin-left: 10px;
+}
+
+#toolbar div {
+    padding: 0;
 }
 
 #audiobook-container {
-    margin: 0 15px;
+    margin: 0;
+}
+
+#audiobook-container::after {
+    content: '';
+    flex: auto;
 }
 
 #series-container {
@@ -22,7 +35,7 @@ body {
 .audiobook {
     padding: 0;
     margin-bottom: 15px;
-    margin-left: 5px;
+    margin-right: 8px;
 }
 
 .audiobook img {
@@ -30,6 +43,10 @@ body {
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.img-wrapper {
+    width: 170px;
 }
 
 .audiobook img:hover {
@@ -95,15 +112,11 @@ body {
 }
 
 .sidebar li.active a {
-    background-color: #e4e4e4;
+    background-color: #c9c3c3;
 }
 
 .sidebar li a:hover {
-    background-color: #e4e4e4;
-}
-
-.sidebar li.active a:hover {
-    background-color: #c9c3c3
+    background-color: #c9c3c3;
 }
 
 .sidebar .fas {

@@ -4,43 +4,48 @@
 {-# LANGUAGE TupleSections     #-}
 
 module Audiobook(
-    listAudiobooks, getAudiobook,
+    listAudiobooks,
+    listAudiobooksInSeries,
+    getAudiobook,
+    listSeries,
     Audiobook(..),
-    module Types
 ) where
 
 import qualified Data.Maybe                  as M
-import           Database.Calibre            (BookAndData)
+import           Database.Calibre            (BookAndData, CalibreSeries)
 import qualified Database.Calibre            as DB
 import           Database.Calibre.BookFormat (CalibreBookFormat (Audio, ZIP))
 import           Import
-import           Types
 
--- | Return only Audiobooks that should be shown on the FE: MP3 Audiobooks
+data Audiobook = Audiobook
+    { abId     :: Int
+    , abTitle  :: Text
+    , abPath   :: FilePath
+    , abFormat :: CalibreBookFormat
+    , abCover  :: FilePath
+    }
+
 listAudiobooks :: Handler [Audiobook]
-listAudiobooks = do
-    mp3Books <- runSQL (DB.listBooks [Audio Mp3])
-    M.catMaybes <$> mapM calibreBookToAudiobook mp3Books
+listAudiobooks = runSQL DB.listBooks >>= mapM calibreBookToAudiobook
 
--- | Return only Audiobooks that should be shown on the FE: MP3 Audiobooks
+listAudiobooksInSeries :: Int -> Handler [Audiobook]
+listAudiobooksInSeries _seriesId = runSQL (DB.listBooksInSeries _seriesId) 
+        >>= mapM calibreBookToAudiobook
+
+listSeries :: Handler [(CalibreSeries, Text)]
+listSeries = runSQL DB.listSeries
+
 getAudiobook :: Int -> Handler Audiobook
-getAudiobook _id = do
-    book <- runSQL (DB.getBook _id) >>= maybe notFound return
-    calibreBookToAudiobook book >>= maybe (invalidArgs ["Not a Audiobook"]) return
+getAudiobook _id = runSQL (DB.getBook _id) >>= maybe notFound calibreBookToAudiobook
 
-calibreBookToAudiobook :: BookAndData -> Handler (Maybe Audiobook)
-calibreBookToAudiobook bd = do
-    let abId = Just $ DB.bookId $ DB.bdBook bd
-    let abTitle = Just $ DB.bookTitle $ DB.bdBook bd
-    abPath <- Just <$> DB.bookFullPath bd
-    -- This is the only "real" Maybe value
-    let abFormat = getAudioFormat $ DB.dataFormat $ DB.bdData bd
-    abCover <- Just <$> DB.bookCover bd
-    return $ Audiobook <$> abId <*> abTitle <*> abPath <*> abFormat <*> abCover
-
-getAudioFormat :: CalibreBookFormat -> Maybe AudioFormat
-getAudioFormat ZIP       = Nothing
-getAudioFormat (Audio f) = Just f
+calibreBookToAudiobook :: BookAndData -> Handler Audiobook
+calibreBookToAudiobook bd@(book, bookData) = do
+    let abId = DB.bookId book
+    let abTitle = DB.bookTitle book
+    abPath <- DB.bookFullPath bd
+    let abFormat = DB.dataFormat bookData
+    abCover <- DB.bookCover bd
+    return Audiobook{..}
 
 -- getAudiobookMp3 :: BookAndData -> Handler (ConduitT () ByteString Handler ())
 -- getAudiobookMp3 book@BookAndData{..} = do
