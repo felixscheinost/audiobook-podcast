@@ -5,6 +5,7 @@
 
 module Audiobook(
     listAudiobooks,
+    listAudiobooksNeedConversion,
     listAudiobooksInSeries,
     getAudiobook,
     listSeries,
@@ -12,7 +13,7 @@ module Audiobook(
 ) where
 
 import qualified Data.Maybe                  as M
-import           Database.Calibre            (BookAndData, CalibreSeries)
+import           Database.Calibre            (CalibreBook, CalibreSeries)
 import qualified Database.Calibre            as DB
 import           Database.Calibre.BookFormat (CalibreBookFormat (Audio, ZIP))
 import           Import
@@ -20,31 +21,38 @@ import           Import
 data Audiobook = Audiobook
     { abId     :: Int
     , abTitle  :: Text
-    , abPath   :: FilePath
-    , abFormat :: CalibreBookFormat
     , abCover  :: FilePath
     }
 
+playableFormats :: Handler [CalibreBookFormat]
+playableFormats = fmap Audio . appDirectPlayFormats . appSettings <$> getYesod
+
 listAudiobooks :: Handler [Audiobook]
-listAudiobooks = runSQL DB.listBooks >>= mapM calibreBookToAudiobook
+listAudiobooks = playableFormats 
+    >>= (runSQL . DB.listBooks)
+    >>= mapM calibreBookToAudiobook
+
+listAudiobooksNeedConversion :: Handler [Audiobook]
+listAudiobooksNeedConversion = playableFormats 
+    >>= (runSQL . DB.listBooksMissingFormats)
+    >>= mapM calibreBookToAudiobook
 
 listAudiobooksInSeries :: Int -> Handler [Audiobook]
-listAudiobooksInSeries _seriesId = runSQL (DB.listBooksInSeries _seriesId) 
+listAudiobooksInSeries _seriesId = playableFormats
+        >>= (runSQL . DB.listBooksMissingFormats)
         >>= mapM calibreBookToAudiobook
 
 listSeries :: Handler [(CalibreSeries, Text)]
-listSeries = runSQL DB.listSeries
+listSeries = playableFormats >>= (runSQL . DB.listSeries)
 
 getAudiobook :: Int -> Handler Audiobook
 getAudiobook _id = runSQL (DB.getBook _id) >>= maybe notFound calibreBookToAudiobook
 
-calibreBookToAudiobook :: BookAndData -> Handler Audiobook
-calibreBookToAudiobook bd@(book, bookData) = do
+calibreBookToAudiobook :: CalibreBook -> Handler Audiobook
+calibreBookToAudiobook book = do
     let abId = DB.bookId book
     let abTitle = DB.bookTitle book
-    abPath <- DB.bookFullPath bd
-    let abFormat = DB.dataFormat bookData
-    abCover <- DB.bookCover bd
+    abCover <- DB.bookCover book
     return Audiobook{..}
 
 -- getAudiobookMp3 :: BookAndData -> Handler (ConduitT () ByteString Handler ())

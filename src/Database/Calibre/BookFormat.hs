@@ -3,9 +3,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE DeriveGeneric         #-}
 
 module Database.Calibre.BookFormat(
     CalibreBookFormat(..),
+    AudioFormat(..),
     allCalibreBookFormats,
     bookFormatFileExtension
 ) where
@@ -23,12 +25,15 @@ import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.Internal  (Field (..))
 import           Database.SQLite.Simple.Ok
 import qualified System.FilePath                  as FP
+import Data.Aeson (FromJSON)
 
 data AudioFormat
     = Mp3
     | M4a
     | M4b
-    deriving (Show, Read, Eq, Enum)
+    deriving (Show, Read, Eq, Enum, Generic)
+
+instance FromJSON AudioFormat
 
 supportedAudioFormats :: [AudioFormat]
 supportedAudioFormats = enumFrom $ toEnum 0

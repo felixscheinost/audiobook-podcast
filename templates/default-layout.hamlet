@@ -12,7 +12,10 @@
                     <a .nav-link href=@{SeriesViewR}>
                         <i .fas.fa-list>
                         _{MsgSeriesView}
-                <li .nav-cat>
+                <li .nav-item.nav-cat-item :currentIs BookNeedConvertR:.active>
+                    <a .nav-link href=@{BookNeedConvertR}>
+                        <i .fas.fa-book-open>
+                        _{MsgBookNeedConvertView}
                 <li .nav-item.nav-item>
                     <a .nav-link href=@{SeriesViewR}>
                         <i .fas.fa-cogs>

@@ -5,7 +5,7 @@
 
 module Database.Calibre.Queries (
     getBook, 
-    listBooks, listBooksMissingFormat,
+    listBooks, listBooksMissingFormats,
     listSeries,
     listBooksInSeries,
     BookAndData
@@ -29,28 +29,28 @@ seriesBookRelationship =
 
 joinAudiobookData = oneToMany_ (cbData calibreDb) dataBook
 
-bookAndData = do
+booksWithFormats formats = do
     b <- booksBookSort
     d <- joinAudiobookData b
-    guard_ (dataFormat d `in_` (val_ <$> allCalibreBookFormats))
-    return (b, d)
+    guard_ (dataFormat d `in_` (val_ <$> formats))
+    return b
 
 type BookAndData = (CalibreBook, CalibreBookData)
 
-getBook :: Int -> Connection -> IO (Maybe BookAndData)
+getBook :: Int -> Connection -> IO (Maybe CalibreBook)
 getBook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
-    (b, d) <- bookAndData
+    b <- booksWithFormats allCalibreBookFormats
     guard_ (bookId b ==. val_ _bookId)
-    return (b, d)
+    return b
 
-listBooks :: Connection -> IO [BookAndData]
-listBooks conn = runBeamSqlite conn $ runSelectReturningList $ select bookAndData
+listBooks :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
+listBooks formats conn = runBeamSqlite conn $ runSelectReturningList $ select (booksWithFormats formats)
 
-listBooksMissingFormat :: CalibreBookFormat -> Connection -> IO [CalibreBook]
-listBooksMissingFormat missingFormat conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+listBooksMissingFormats :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
+listBooksMissingFormats missingFormats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     (b, sumTarget) <- aggregate_ (\(b, d) -> 
                 ( group_ b
-                , sum_ (if_ [(dataFormat d ==. val_ missingFormat) `then_` val_ (1 :: Int)] (else_ (val_ 0)))
+                , sum_ (if_ [(dataFormat d `in_` (val_ <$> missingFormats)) `then_` val_ (1 :: Int)] (else_ (val_ 0)))
                 )) $ do
         b <- books
         d <- joinAudiobookData b
@@ -61,20 +61,20 @@ listBooksMissingFormat missingFormat conn = runBeamSqlite conn $ runSelectReturn
 
 -- Returns each series with a comma-separated list of IDs
 -- TODO: Return only one book per series?
-listSeries :: Connection -> IO [(CalibreSeries, Text)]
-listSeries conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+listSeries :: [CalibreBookFormat] -> Connection -> IO [(CalibreSeries, Text)]
+listSeries formats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     (s, bIds) <- aggregate_ (\(s, b) -> (group_ s, sqliteGroupConcatOver distinctInGroup_ (bookId b))) $ do
         (s, b) <- seriesBookRelationship series books
         d <- joinAudiobookData b
-        guard_ (dataFormat d `in_` (val_ <$> allCalibreBookFormats))
+        guard_ (dataFormat d `in_` (val_ <$> formats))
         return (s, b)
     return (s, fromMaybe_ (val_ "") bIds)
 
-listBooksInSeries :: Int -> Connection -> IO [BookAndData]
-listBooksInSeries _seriesId  conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+listBooksInSeries :: Int ->  [CalibreBookFormat] -> Connection -> IO [CalibreBook]
+listBooksInSeries _seriesId formats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     b <- booksSeriesSort
     (s, b) <- seriesBookRelationship series (return b)
     d <- joinAudiobookData b
-    guard_ (dataFormat d `in_` (val_ <$> allCalibreBookFormats))
+    guard_ (dataFormat d `in_` (val_ <$> formats))
     guard_ (seriesId s ==. val_ _seriesId)
-    return (b, d)
+    return b

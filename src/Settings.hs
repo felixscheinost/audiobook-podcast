@@ -15,6 +15,7 @@ import           ClassyPrelude.Yesod
 import           Data.Aeson                 (withObject, (.!=), (.:?))
 import           Language.Haskell.TH.Syntax (Exp, Q)
 import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
+import           Database.Calibre.BookFormat (AudioFormat(..))
 import           Yesod.Default.Util         (WidgetFileSettings,
                                              widgetFileNoReload,
                                              widgetFileReload)
@@ -24,6 +25,8 @@ data AppSettings = AppSettings
     , appCalibreLibraryFolder :: String
     , appDevelopment          :: Bool
     , appMp3Quality           :: Int
+    , appDirectPlayFormats    :: [AudioFormat]
+    , appConvertToFormat      :: AudioFormat
     }
 
 instance FromJSON AppSettings where
@@ -41,6 +44,8 @@ instance FromJSON AppSettings where
                 False
 #endif
         appDevelopment          <- o .:? "development" .!= defaultDevelopment
+        appDirectPlayFormats    <- o .:? "play-without-conversion" .!= []
+        appConvertToFormat      <- o .:? "conversion-format" .!= Mp3
         return AppSettings {..}
 
 getAppSettings :: IO AppSettings

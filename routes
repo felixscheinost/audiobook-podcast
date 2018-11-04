@@ -9,6 +9,7 @@
 /books                        BookViewR             GET
 /series                       SeriesViewR           GET
 /series/#Int                  SingleSeriesViewR     GET
+/toconvert                    BookNeedConvertR      GET POST
        
 /book/#Int/cover              BookCoverR            GET
 /book/#Int/overlay            BookOverlayR          GET

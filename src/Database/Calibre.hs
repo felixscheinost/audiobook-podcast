@@ -6,7 +6,7 @@
 module Database.Calibre (
     libraryPath,
     bookCover,
-    bookFullPath,
+    formatDataFullPath,
     BookAndData,
     module Database.Calibre.BookFormat,
     module Database.Calibre.Tables,
@@ -24,13 +24,17 @@ import           System.FilePath             (replaceFileName, (<.>), (</>))
 libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"
 
-bookFullPath :: BookAndData -> Handler FilePath
-bookFullPath (book, bookData) = do
-    app <- getYesod
-    return $ appCalibreLibraryFolder (appSettings app)
-        </> T.unpack (bookPath book)
-        </> T.unpack (dataName bookData)
-        <.> T.unpack (bookFormatFileExtension $ dataFormat bookData)
+bookFolder :: CalibreBook -> Handler FilePath
+bookFolder CalibreBook{bookPath=bookPath} = do
+    calibreFolder <- appCalibreLibraryFolder . appSettings <$> getYesod
+    return $ calibreFolder </> T.unpack bookPath
 
-bookCover :: BookAndData -> Handler FilePath
-bookCover bd = (`replaceFileName` "cover.jpg") <$> bookFullPath bd
+formatDataFullPath :: BookAndData -> Handler FilePath
+formatDataFullPath (book, CalibreBookData{dataFormat=dataFormat, dataName=dataName}) = do
+    folder <- bookFolder book
+    return $ folder </> T.unpack dataName <.> T.unpack (bookFormatFileExtension dataFormat)
+
+bookCover :: CalibreBook -> Handler FilePath
+bookCover book = do
+    folder <- bookFolder book
+    return $ folder </> "cover.jpg"

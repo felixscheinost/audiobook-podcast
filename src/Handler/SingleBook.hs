@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Controllers.Book where
+module Handler.SingleBook where
 
 import           Audiobook               (Audiobook(..))
 import qualified Audiobook               as AB
@@ -93,7 +93,7 @@ getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abCover)
 
 getBookFileR :: Int -> Handler TypedContent
-getBookFileR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abPath)
+getBookFileR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abCover)
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
