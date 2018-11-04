@@ -2,11 +2,25 @@
     <div .row>
         <nav .col-md-2 .sidebar.bg-light>
             <ul .nav>
-                $forall m <- menuItems
-                    <li .nav-item :isActive m:.active>
-                        <a .nav-link href=@{menuItemRoute m}>
-                            <i *{menuClass m}>
-                            _{menuItemMsg m}
+                <li .nav-cat>
+                   _{MsgNavBookCategory} 
+                <li .nav-item.nav-cat-item :currentIs BookViewR:.active>
+                    <a .nav-link href=@{BookViewR}>
+                        <i .fas.fa-book-open>
+                        _{MsgBookView}
+                <li .nav-item.nav-cat-item :currentIsSeries:.active>
+                    <a .nav-link href=@{SeriesViewR}>
+                        <i .fas.fa-list>
+                        _{MsgSeriesView}
+                <li .nav-cat>
+                <li .nav-item.nav-item>
+                    <a .nav-link href=@{SeriesViewR}>
+                        <i .fas.fa-cogs>
+                        _{MsgConversionsView}
+                <li .nav-item.nav-item>
+                    <a .nav-link href=@{SeriesViewR}>
+                        <i .fas.fa-wrench>
+                        _{MsgSettingsView}
         <main .col-md-10>
             ^{widget}
                 

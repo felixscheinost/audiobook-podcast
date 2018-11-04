@@ -123,3 +123,14 @@ body {
     width: 20px;
     margin-right: 5px;
 }
+
+.nav-cat {
+    text-transform: uppercase;
+    color: #797777;
+    font-size: 15px;
+    margin: 5px 10px;    
+}
+
+.nav-cat-item a {
+    padding-left: 35px !important;
+}

@@ -33,40 +33,12 @@ data MenuItem = MenuItem
 instance Yesod App where
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
-        let isSeriesRoute route = case route of
-                SeriesViewR           -> True
-                (SingleSeriesViewR _) -> True
-                _                     -> False
-        let menuItems =
-                [ MenuItem
-                    { menuItemMsg = MsgBookView
-                    , menuItemRoute = BookViewR
-                    , menuItemIcon = "book-open"
-                    , menuItemMatcher = Nothing
-                    } 
-                , MenuItem
-                    { menuItemMsg = MsgSeriesView
-                    , menuItemRoute = SeriesViewR
-                    , menuItemIcon = "list"
-                    , menuItemMatcher = Just isSeriesRoute
-                    }
-                , MenuItem
-                    { menuItemMsg = MsgConversionsView
-                    , menuItemRoute = SeriesViewR
-                    , menuItemIcon = "cogs"
-                    , menuItemMatcher = Nothing
-                    }
-                , MenuItem
-                    { menuItemMsg = MsgSettingsView
-                    , menuItemRoute = SeriesViewR
-                    , menuItemIcon = "wrench"
-                    , menuItemMatcher = Nothing
-                    }
-                ]
-        let menuClass mi = [("class" :: Text, "fas fa-" ++ menuItemIcon mi)]
         currentRoute <- getCurrentRoute
-        let matcher mi = fromMaybe (== menuItemRoute mi) (menuItemMatcher mi)
-        let isActive mi = maybe False (matcher mi) currentRoute
+        let currentIsSeries = case currentRoute of
+                Just SeriesViewR           -> True
+                Just (SingleSeriesViewR _) -> True
+                _                          -> False
+        let currentIs route = maybe False (route ==) currentRoute
         pc <- widgetToPageContent $(widgetFileReload def "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 

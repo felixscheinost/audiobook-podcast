@@ -3,6 +3,7 @@ AuthorView: Authors
 SeriesView: Series
 ConversionsView: Conversions
 SettingsView: Settings
+NavBookCategory: Books
 
 Search: Search
 
