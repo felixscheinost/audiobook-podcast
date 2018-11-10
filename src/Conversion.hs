@@ -1,8 +1,10 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE QuasiQuotes               #-}
 {-# LANGUAGE RecordWildCards           #-}
+{-# LANGUAGE TupleSections             #-}
 
 module Conversion where
 
@@ -21,29 +23,27 @@ import           Import
 import           System.IO.Temp              (getCanonicalTemporaryDirectory)
 import qualified Zip
 
--- | The different cases the conversion process needs to handle
--- In decending order preference
 data ConversionType
-    = ZipTargetFormat Audiobook FilePath
-    | DifferentFormat Audiobook AudioFormat FilePath
-    | ZipDifferentFormat Audiobook AudioFormat FilePath
+    = ZipConvert Audiobook FilePath AudioFormat AudioFormat
+    | FileConvert Audiobook FilePath AudioFormat AudioFormat
 
 rankConversionType :: ConversionType -> Int
-rankConversionType ZipTargetFormat{}    = 1
-rankConversionType DifferentFormat{}    = 2
-rankConversionType ZipDifferentFormat{} = 3
+rankConversionType (ZipConvert _ _ f t)
+    | f == t                        = 1
+    | otherwise                     = 3
+rankConversionType FileConvert{}    = 2
 
-data ConversionTypeError
+data ConversionError
     = NoAudioFilesInZip
     | ZipContainsMultipleFormats
     | BookAlreadyContainsTargetFormat
 
-convertionTypeErrorMsg :: ConversionTypeError -> AppMessage
+convertionTypeErrorMsg :: ConversionError -> AppMessage
 convertionTypeErrorMsg NoAudioFilesInZip          = MsgNoAudioFilesInZip
 convertionTypeErrorMsg ZipContainsMultipleFormats = MsgZipContainsMultipleFormats
 convertionTypeErrorMsg BookAlreadyContainsTargetFormat = MsgBookAlreadyContainsTargetFormat
 
-conersionTypeForBookAndData :: (CalibreBook, CalibreBookData) -> ExceptT ConversionTypeError Handler ConversionType
+conersionTypeForBookAndData :: (CalibreBook, CalibreBookData) -> ExceptT ConversionError Handler ConversionType
 conersionTypeForBookAndData bd@(book, bookData) = do
     targetFormat <- lift $ appConversionTargetFormat . appSettings <$> getYesod
     ab <- lift $ AB.calibreBookToAudiobook book
@@ -51,14 +51,13 @@ conersionTypeForBookAndData bd@(book, bookData) = do
     case DB.dataFormat bookData of
         Audio format -> do
             when (format == targetFormat) $ throwE BookAlreadyContainsTargetFormat
-            return $ DifferentFormat ab format path
+            return $ FileConvert ab path format targetFormat
         ZIP -> do
-            formats <- mapMaybe filePathAudioFormat <$> Zip.getFilePathsInZip path
+            filesWithFormats <- mapMaybe (\fp -> (fp,) <$> filePathAudioFormat fp) <$> Zip.getFilePathsInZip path
+            let (files, formats) = List.unzip filesWithFormats
             format <- maybe (throwE NoAudioFilesInZip) (return . head) $ fromNullable formats
             when (List.any (/= format) formats) $ throwE ZipContainsMultipleFormats
-            if format == targetFormat
-                then return $ ZipTargetFormat ab path
-                else return $ ZipDifferentFormat ab format path
+            return $ ZipConvert ab path format targetFormat
 
 -- | Describe a single step of the process
 data StepDescription
@@ -82,30 +81,30 @@ data StepState a
     | Finished
 
 -- | Step action that takes i as input, produces o as output and has progress information p
-type StepAction i o p =  ((Maybe p -> Maybe p) -> IO ()) -> i -> IO o
+type StepAction i o p =  ((Maybe p -> Maybe p) -> IO ()) -> i -> ExceptT ConversionError IO o
 
 -- | Holds the data for one conversion step
-data StepData i o id od p = StepData
+data StepData i o p = StepData
     { action      :: StepAction i o p
-    , description :: id -> IO (Maybe StepDescription, od)
+    , description :: i -> Maybe StepDescription
     , state       :: TVar (StepState p)
     }
 
 -- | Conversion step that takes i and produces o, for description takes id and produces od for next description
-data Step i o id od p
-    = Single (StepData i o id od p)
-    | forall u ud p'. Nested (StepData i u id ud p) (Step u o ud od p')
+data Step i o p
+    = Single (StepData i o p)
+    | forall u ud p'. Nested (StepData i u p) (Step u o p')
 
 -- | Run two steps after each other
-andThen :: Step i u id ud p -> Step u o ud od p' -> Step i o id od p
+andThen :: Step i u p -> Step u o p' -> Step i o p
 andThen (Single c) next   = Nested c next
 andThen (Nested c d) next = Nested c (andThen d next)
 
-andThenM :: Monad m => m (Step i u id ud p) -> m (Step u o ud od p') -> m (Step i o id od p)
+andThenM :: Monad m => m (Step i u p) -> m (Step u o p') -> m (Step i o p)
 andThenM = liftM2 andThen
 
 -- | Convert an action to a step
-fromIO :: (id -> IO (Maybe StepDescription, od)) -> StepAction i o p -> IO (Step i o id od p)
+fromIO :: (i -> Maybe StepDescription) -> StepAction i o p -> IO (Step i o p)
 fromIO desc action = do
     m <- atomically $ newTVar Waiting
     return $ Single $ StepData
@@ -114,18 +113,16 @@ fromIO desc action = do
         , state = m
         }
 
--- | An action that produces a constant output
-const :: o -> od -> IO (Step i o id od p)
-const output outputDescription = do
-    let descriptionFor input = return (Nothing, outputDescription)
-    let action updateProgress input = return output
-    fromIO descriptionFor action
+conversionSourceFile :: ConversionType -> IO (Step () (ConversionType, [FilePath]) Zip.UnzipProgress)
+conversionSourceFile ct@(ZipConvert _ zipPath _ _) = fromIO (const $ Just UnpackZIP) $ \updateProgress _ -> do
+    tempDir <- liftIO getCanonicalTemporaryDirectory
+    files <- liftIO $ Zip.unpackInto tempDir zipPath updateProgress
+    return (ct, files)
+conversionSourceFile ct@(FileConvert _ path _ _) = fromIO (const Nothing) $ \_ _ -> return (ct, [path])
 
--- | An action that unzips a file to a temporary location and returns the paths to the unzipped files when run.
---   A temporary folder is created into which each file is unzipped using its original name.
-unzip :: IO (Step FilePath [FilePath] FilePath [FilePath] Zip.UnzipProgress)
-unzip = fromIO
-    (fmap ((,) (Just UnpackZIP)) . Zip.getFilePathsInZip)
-    $ \updateProgress zipPath -> do
-        tempDir <- getCanonicalTemporaryDirectory
-        Zip.unpackInto tempDir zipPath updateProgress
+conversion :: IO (Step (ConversionType, [FilePath]) FilePath Double)
+conversion = fromIO description $ \updateProgress ct -> do
+    return ""
+        where
+            description (ZipConvert _ _ f t, fps) = Just $ Convert (length fps) f t
+            description (FileConvert _ _ f t, _) = Just $ Convert 1 f t

@@ -1,9 +1,9 @@
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE DeriveGeneric         #-}
 
 module Database.Calibre.BookFormat(
     CalibreBookFormat(..),
@@ -14,6 +14,7 @@ module Database.Calibre.BookFormat(
     ffmpegFormatStr
 ) where
 
+import           Data.Aeson                       (FromJSON)
 import qualified Data.Char                        as C
 import qualified Data.List                        as L
 import           Data.Text                        (Text)
@@ -26,12 +27,11 @@ import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.Internal  (Field (..))
 import           Database.SQLite.Simple.Ok
 import qualified System.FilePath                  as FP
-import Data.Aeson (FromJSON)
 
 data AudioFormat
-    = Mp3
-    | M4a
-    | M4b
+    = MP3
+    | M4A
+    | M4B
     deriving (Show, Read, Eq, Enum, Generic)
 
 instance FromJSON AudioFormat

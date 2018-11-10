@@ -45,7 +45,7 @@ instance FromJSON AppSettings where
 #endif
         appDevelopment          <- o .:? "development" .!= defaultDevelopment
         appDirectPlayFormats    <- o .:? "play-without-conversion" .!= []
-        appConversionTargetFormat      <- o .:? "conversion-format" .!= Mp3
+        appConversionTargetFormat      <- o .:? "conversion-format" .!= MP3
         return AppSettings {..}
 
 getAppSettings :: IO AppSettings
