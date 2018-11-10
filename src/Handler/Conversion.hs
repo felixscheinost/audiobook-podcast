@@ -6,6 +6,15 @@
 module Handler.Conversion where
 
 import Import
+import qualified Zip
+import           Database.Calibre.BookFormat (AudioFormat,
+                                              CalibreBookFormat (Audio, ZIP),
+                                              filePathAudioFormat)
+import qualified Database.Calibre as DB
+import Database.Calibre (CalibreBook, CalibreBookData)
+import Audiobook (Audiobook)
+import qualified Audiobook as AB
+
 
 getConversionViewR :: Handler Html
 getConversionViewR = 
@@ -21,7 +30,9 @@ getConversionViewR =
             <div .media.conversion-job>
                 <img .mr-3 src=@{BookCoverR 128} width="120px">
                 <div .media-object>
-                    <h5>Konvertiere Schwarz zu MP3
+                    <h5>
+                        Konvertiere Schwarz zu MP3
+                        <span .fas.fa-ban>
                     <table>
                         <tr>
                             <td>

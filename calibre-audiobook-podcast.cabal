@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c5a545b5e466495065c2c1595e549a91a318bea4645f09b98ff28661a8159428
+-- hash: de90c31f76736a63e9b69f8d607bd59032d0c085863d4d6cfc34deed17e524bb
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -27,6 +27,7 @@ library
       Background
       Background.Conversion
       Background.Foundation
+      Conversion
       Database.Calibre
       Database.Calibre.BookFormat
       Database.Calibre.Queries
@@ -46,6 +47,7 @@ library
       src
   build-depends:
       aeson
+    , async
     , base
     , beam-core
     , beam-sqlite
@@ -68,6 +70,7 @@ library
     , scientific
     , shakespeare
     , sqlite-simple
+    , stm
     , template-haskell
     , temporary
     , text
@@ -98,6 +101,7 @@ executable calibre-audiobook-podcast
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , async
     , base
     , beam-core
     , beam-sqlite
@@ -121,6 +125,7 @@ executable calibre-audiobook-podcast
     , scientific
     , shakespeare
     , sqlite-simple
+    , stm
     , template-haskell
     , temporary
     , text

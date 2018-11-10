@@ -13,6 +13,10 @@ ConversionRunning: Running
 ConversionQueued: Queued
 ConversionFinished: Finished
 
+NoAudioFilesInZip: ZIP doesn't contain any supported audio files
+ZipContainsMultipleFormats: ZIP contains files with different audio format
+BookAlreadyContainsTargetFormat: Book already has that format
+
 CopyRSSLink: Copy link to podcast
 DownloadMP3: Download MP3
 
