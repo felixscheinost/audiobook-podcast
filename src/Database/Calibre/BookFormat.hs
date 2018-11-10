@@ -9,11 +9,12 @@ module Database.Calibre.BookFormat(
     CalibreBookFormat(..),
     AudioFormat(..),
     allCalibreBookFormats,
-    bookFormatFileExtension
+    bookFormatFileExtension,
+    filePathAudioFormat,
+    ffmpegFormatStr
 ) where
 
 import qualified Data.Char                        as C
-import           Data.Foldable                    (asum)
 import qualified Data.List                        as L
 import           Data.Text                        (Text)
 import qualified Data.Text                        as T

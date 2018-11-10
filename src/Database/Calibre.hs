@@ -19,7 +19,7 @@ import           Database.Calibre.BookFormat (bookFormatFileExtension)
 import           Database.Calibre.Queries
 import           Database.Calibre.Tables
 import           Import
-import           System.FilePath             (replaceFileName, (<.>), (</>))
+import           System.FilePath             ((<.>), (</>))
 
 libraryPath :: AppSettings -> FilePath
 libraryPath o = appCalibreLibraryFolder o </> "metadata.db"

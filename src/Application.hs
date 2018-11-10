@@ -46,7 +46,7 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appDbConnection <- Sql.open (libraryPath appSettings ++ "?mode=ro") >>= newMVar
+    appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and

@@ -9,31 +9,31 @@ module Audiobook(
     listAudiobooksInSeries,
     getAudiobook,
     listSeries,
+    calibreBookToAudiobook,
     Audiobook(..),
 ) where
 
-import qualified Data.Maybe                  as M
 import           Database.Calibre            (CalibreBook, CalibreSeries)
 import qualified Database.Calibre            as DB
-import           Database.Calibre.BookFormat (CalibreBookFormat (Audio, ZIP))
+import           Database.Calibre.BookFormat (CalibreBookFormat (Audio))
 import           Import
 
 data Audiobook = Audiobook
-    { abId     :: Int
-    , abTitle  :: Text
-    , abCover  :: FilePath
+    { abId    :: Int
+    , abTitle :: Text
+    , abCover :: FilePath
     }
 
 playableFormats :: Handler [CalibreBookFormat]
 playableFormats = fmap Audio . appDirectPlayFormats . appSettings <$> getYesod
 
 listAudiobooks :: Handler [Audiobook]
-listAudiobooks = playableFormats 
+listAudiobooks = playableFormats
     >>= (runSQL . DB.listBooks)
     >>= mapM calibreBookToAudiobook
 
 listAudiobooksNeedConversion :: Handler [Audiobook]
-listAudiobooksNeedConversion = playableFormats 
+listAudiobooksNeedConversion = playableFormats
     >>= (runSQL . DB.listBooksMissingFormats)
     >>= mapM calibreBookToAudiobook
 

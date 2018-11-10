@@ -8,6 +8,7 @@ module Database.Calibre.Queries (
     listBooks, listBooksMissingFormats,
     listSeries,
     listBooksInSeries,
+    listBookData,
     BookAndData
 ) where
 
@@ -33,18 +34,20 @@ booksWithFormats formats = do
     b <- booksBookSort
     d <- joinAudiobookData b
     guard_ (dataFormat d `in_` (val_ <$> formats))
-    return b
+    return (b, d)
 
 type BookAndData = (CalibreBook, CalibreBookData)
 
 getBook :: Int -> Connection -> IO (Maybe CalibreBook)
 getBook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
-    b <- booksWithFormats allCalibreBookFormats
+    (b, _) <- booksWithFormats allCalibreBookFormats
     guard_ (bookId b ==. val_ _bookId)
     return b
 
 listBooks :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
-listBooks formats conn = runBeamSqlite conn $ runSelectReturningList $ select (booksWithFormats formats)
+listBooks formats conn = runBeamSqlite conn $ 
+    runSelectReturningList $ 
+        select (fst <$> booksWithFormats formats)
 
 listBooksMissingFormats :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
 listBooksMissingFormats missingFormats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
@@ -73,8 +76,14 @@ listSeries formats conn = runBeamSqlite conn $ runSelectReturningList $ select $
 listBooksInSeries :: Int ->  [CalibreBookFormat] -> Connection -> IO [CalibreBook]
 listBooksInSeries _seriesId formats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     b <- booksSeriesSort
-    (s, b) <- seriesBookRelationship series (return b)
-    d <- joinAudiobookData b
+    (s, bb) <- seriesBookRelationship series (return b)
+    d <- joinAudiobookData bb
     guard_ (dataFormat d `in_` (val_ <$> formats))
     guard_ (seriesId s ==. val_ _seriesId)
-    return b
+    return bb
+
+listBookData :: Int -> Connection -> IO [BookAndData]
+listBookData _bookId conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+    (b, d) <- booksWithFormats allCalibreBookFormats
+    guard_ (bookId b ==. val_ _bookId)
+    return (b, d)

@@ -12,21 +12,21 @@ module Settings (
 ) where
 
 import           ClassyPrelude.Yesod
-import           Data.Aeson                 (withObject, (.!=), (.:?))
-import           Language.Haskell.TH.Syntax (Exp, Q)
-import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
-import           Database.Calibre.BookFormat (AudioFormat(..))
-import           Yesod.Default.Util         (WidgetFileSettings,
-                                             widgetFileNoReload,
-                                             widgetFileReload)
+import           Data.Aeson                  (withObject, (.!=), (.:?))
+import           Database.Calibre.BookFormat (AudioFormat (..))
+import           Language.Haskell.TH.Syntax  (Exp, Q)
+import           Yesod.Default.Config2       (ignoreEnv, loadYamlSettings)
+import           Yesod.Default.Util          (WidgetFileSettings,
+                                              widgetFileNoReload,
+                                              widgetFileReload)
 
 data AppSettings = AppSettings
-    { appPort                 :: Int
-    , appCalibreLibraryFolder :: String
-    , appDevelopment          :: Bool
-    , appMp3Quality           :: Int
-    , appDirectPlayFormats    :: [AudioFormat]
-    , appConvertToFormat      :: AudioFormat
+    { appPort                   :: Int
+    , appCalibreLibraryFolder   :: String
+    , appDevelopment            :: Bool
+    , appMp3Quality             :: Int
+    , appDirectPlayFormats      :: [AudioFormat]
+    , appConversionTargetFormat :: AudioFormat
     }
 
 instance FromJSON AppSettings where
@@ -34,7 +34,7 @@ instance FromJSON AppSettings where
         appPort                 <- o .:? "port" .!= 8090
         appCalibreLibraryFolder <- o .:  "calibre-library"
         quality                 <- o .:?  "mp3-quality" .!= 7
-        appMp3Quality <- 
+        appMp3Quality <-
             if 0 <= quality && quality <= 9 then return quality
             else fail "mp3-quality neds to be between 0-9"
         let defaultDevelopment =
@@ -45,7 +45,7 @@ instance FromJSON AppSettings where
 #endif
         appDevelopment          <- o .:? "development" .!= defaultDevelopment
         appDirectPlayFormats    <- o .:? "play-without-conversion" .!= []
-        appConvertToFormat      <- o .:? "conversion-format" .!= Mp3
+        appConversionTargetFormat      <- o .:? "conversion-format" .!= Mp3
         return AppSettings {..}
 
 getAppSettings :: IO AppSettings
