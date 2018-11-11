@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Database.Calibre.Queries (
-    getBook, 
+    getBook,
     listBooks, listBooksMissingFormats,
     listSeries,
     listBooksInSeries,
@@ -12,12 +12,13 @@ module Database.Calibre.Queries (
     BookAndData
 ) where
 
-import           Data.Text                   (Text)
+import           Data.Text               (Text)
 import           Database.Beam
 import           Database.Beam.Sqlite
-import           Database.Calibre.BookFormat (allCalibreBookFormats, CalibreBookFormat)
+import           Database.Calibre.Format (CalibreBookFormat,
+                                          allCalibreBookFormats)
 import           Database.Calibre.Tables
-import           Database.SQLite.Simple      (Connection)
+import           Database.SQLite.Simple  (Connection)
 
 books = all_ (cbBooks calibreDb)
 series = all_ (cbSeries calibreDb)
@@ -45,13 +46,13 @@ getBook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
     return b
 
 listBooks :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
-listBooks formats conn = runBeamSqlite conn $ 
-    runSelectReturningList $ 
+listBooks formats conn = runBeamSqlite conn $
+    runSelectReturningList $
         select (fst <$> booksWithFormats formats)
 
 listBooksMissingFormats :: [CalibreBookFormat] -> Connection -> IO [CalibreBook]
 listBooksMissingFormats missingFormats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
-    (b, sumTarget) <- aggregate_ (\(b, d) -> 
+    (b, sumTarget) <- aggregate_ (\(b, d) ->
                 ( group_ b
                 , sum_ (if_ [(dataFormat d `in_` (val_ <$> missingFormats)) `then_` val_ (1 :: Int)] (else_ (val_ 0)))
                 )) $ do

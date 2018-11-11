@@ -12,13 +12,13 @@ module Settings (
 ) where
 
 import           ClassyPrelude.Yesod
-import           Data.Aeson                  (withObject, (.!=), (.:?))
-import           Database.Calibre.BookFormat (AudioFormat (..))
-import           Language.Haskell.TH.Syntax  (Exp, Q)
-import           Yesod.Default.Config2       (ignoreEnv, loadYamlSettings)
-import           Yesod.Default.Util          (WidgetFileSettings,
-                                              widgetFileNoReload,
-                                              widgetFileReload)
+import           Data.Aeson                 (withObject, (.!=), (.:?))
+import           Database.Calibre.Format    (AudioFormat (..))
+import           Language.Haskell.TH.Syntax (Exp, Q)
+import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
+import           Yesod.Default.Util         (WidgetFileSettings,
+                                             widgetFileNoReload,
+                                             widgetFileReload)
 
 data AppSettings = AppSettings
     { appPort                   :: Int

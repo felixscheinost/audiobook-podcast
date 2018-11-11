@@ -5,22 +5,22 @@
 
 module Handler.SingleBook where
 
-import           Audiobook               (Audiobook(..))
-import qualified Audiobook               as AB
-import qualified Data.ByteString.Builder as BSB
-import           Data.Conduit            (Flush (..))
-import           Data.Conduit.Binary     (sourceFileRange)
-import qualified Data.Text               as T
-import           Data.Time.Clock         (getCurrentTime)
-import           Import                  hiding (count, fileSize)
-import qualified Network.HTTP.Types      as HTTP
-import           Network.Mime            (defaultMimeLookup)
-import           System.FilePath         (takeFileName)
-import           System.IO               (IOMode (ReadMode))
+import qualified Data.ByteString.Builder    as BSB
+import           Data.Conduit               (Flush (..))
+import           Data.Conduit.Binary        (sourceFileRange)
+import qualified Data.Text                  as T
+import           Data.Time.Clock            (getCurrentTime)
+import           Database.Calibre.Audiobook (Audiobook (..))
+import qualified Database.Calibre.Audiobook as Audiobook
+import           Import                     hiding (count, fileSize)
+import qualified Network.HTTP.Types         as HTTP
+import           Network.Mime               (defaultMimeLookup)
+import           System.FilePath            (takeFileName)
+import           System.IO                  (IOMode (ReadMode))
 import           Yesod.RssFeed
 
-rangeNotSatisfiable :: Handler a
-rangeNotSatisfiable = sendResponseStatus status416 ("" :: Text)
+rangeNotSatisfiAudiobookle :: Handler a
+rangeNotSatisfiAudiobookle = sendResponseStatus status416 ("" :: Text)
 
 type FileSize = Integer
 
@@ -32,7 +32,7 @@ checkRange fileSize from to
     | 0 <= from && from <= to && to <= fileSize= do
         replaceOrAddHeader "Content-Range" $ tshow from ++ "-" ++ tshow to ++ "/" ++ tshow fileSize
         return (from, to, status206)
-    | otherwise = rangeNotSatisfiable
+    | otherwise = rangeNotSatisfiAudiobookle
 
 -- Handles the HTTP `Range` header.
 -- Multiple ranges not supported and yield a 416.
@@ -54,7 +54,7 @@ parseRange fileSize = do
             Just [ByteRangeSuffix to] ->
                 checkRange fileSize (fileSize - to - 1) (fileSize - 1)
             _ ->
-                rangeNotSatisfiable
+                rangeNotSatisfiAudiobookle
     (from, to, status) <- maybe noRangeHeader (handleParseResult . HTTP.parseByteRanges) range
     let count = to - from + 1
     replaceOrAddHeader "Content-Length" $ tshow count
@@ -67,7 +67,7 @@ sendFileMime fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendFile mime fp
 
--- Had sporadic problems with high CPU (probably GC) using `sendFile`
+-- Had sporadic problems with high CPU (probAudiobookly GC) using `sendFile`
 -- This sends the file manually using a conduit
 -- => Slower than using sendfile(2)
 --   => TODO: Switch back to `sendFile`
@@ -90,19 +90,19 @@ sendFileMimeConduit fp = do
     sendFileConduit mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
-getBookCoverR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abCover)
+getBookCoverR _id = Audiobook.getAudiobook _id >>= (sendFileMime . Audiobook.abCover)
 
 getBookFileR :: Int -> Handler TypedContent
-getBookFileR _id = AB.getAudiobook _id >>= (sendFileMime . AB.abCover)
+getBookFileR _id = Audiobook.getAudiobook _id >>= (sendFileMime . Audiobook.abCover)
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
-    ab <- AB.getAudiobook _id
+    Audiobook{abTitle=abTitle} <- Audiobook.getAudiobook _id
     pc <- widgetToPageContent [whamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{abTitle ab} (#{_id})
-                <button .close type="button" data-dismiss="modal" aria-label="Close">
+                <h5 .modal-title> #{abTitle} (#{_id})
+                <button .close type="button" data-dismiss="modal" aria-lAudiobookel="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
                 <img src=@{BookCoverR _id}>
@@ -110,7 +110,7 @@ getBookOverlayR _id = do
                     <div .row>
                         <a .btn.btn-primary href=@{BookRssR _id}> _{MsgCopyRSSLink}
                         <a .btn.btn-primary href=@{BookFileR _id}> _{MsgDownloadMP3}
-    |] 
+    |]
     withUrlRenderer [hamlet|
         ^{pageBody pc}
     |]
@@ -142,6 +142,6 @@ bookFeed now Audiobook{..} = Feed
 
 getBookRssR :: Int -> Handler RepRss
 getBookRssR _id = do
-    b <- AB.getAudiobook _id
+    b <- Audiobook.getAudiobook _id
     now <- liftIO getCurrentTime
     rssFeed $ bookFeed now b

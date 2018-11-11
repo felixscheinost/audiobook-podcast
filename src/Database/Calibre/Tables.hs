@@ -12,7 +12,7 @@
 module Database.Calibre.Tables where
 
 import           Database.Beam
-import           Database.Calibre.BookFormat
+import           Database.Calibre.Format
 import           Import
 
 

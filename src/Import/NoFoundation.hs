@@ -5,8 +5,10 @@ module Import.NoFoundation
 
 import           ClassyPrelude.Yesod   as Import
 import           Control.Monad.Logger  as Import
+import           MyMonadStack          as Import
 import           Settings              as Import
 import           Settings.StaticFiles  as Import
+import           System.FilePath       as Import ((<.>), (</>))
 import           Text.Hamlet           as Import (ihamlet)
 import           Yesod.Core.Types      as Import (loggerSet)
 import           Yesod.Default.Config2 as Import

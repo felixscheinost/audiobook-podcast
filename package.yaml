@@ -41,6 +41,7 @@ dependencies:
 - case-insensitive
 - stm
 - async
+- mtl
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

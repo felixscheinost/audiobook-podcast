@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Database.Calibre.BookFormat(
+module Database.Calibre.Format(
     CalibreBookFormat(..),
     AudioFormat(..),
     allCalibreBookFormats,

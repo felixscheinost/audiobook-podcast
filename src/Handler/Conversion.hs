@@ -1,25 +1,25 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 module Handler.Conversion where
 
-import Import
+import           Conversion.Audiobook
+import           Import
 import qualified Zip
-import           Database.Calibre.BookFormat (AudioFormat,
-                                              CalibreBookFormat (Audio, ZIP),
-                                              filePathAudioFormat)
-import qualified Database.Calibre as DB
-import Database.Calibre (CalibreBook, CalibreBookData)
-import Audiobook (Audiobook)
-import qualified Audiobook as AB
+
+
+formatErrorMsg :: FormatError -> AppMessage
+formatErrorMsg NoAudioFilesInZip          = MsgNoAudioFilesInZip
+formatErrorMsg ZipContainsMultipleFormats = MsgZipContainsMultipleFormats
+formatErrorMsg BookAlreadyContainsTargetFormat = MsgBookAlreadyContainsTargetFormat
 
 
 getConversionViewR :: Handler Html
-getConversionViewR = 
+getConversionViewR =
     defaultLayout [whamlet|
-        <div .container>       
+        <div .container>
             <ul .nav.nav-pills.mt-2>
                 <li .nav-item>
                     <a .nav-link.active href="#">_{MsgConversionRunning}

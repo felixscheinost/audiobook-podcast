@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
@@ -5,19 +6,22 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
+
 module Foundation where
 
-import           Control.Concurrent.MVar (MVar)
-import qualified Database.SQLite.Simple  as Sql
+import           Control.Concurrent.MVar      (MVar)
+import           Control.Concurrent.STM.TChan (TChan)
+import qualified Database.SQLite.Simple       as Sql
 import           Import.NoFoundation
-import           Text.Hamlet             (hamletFile)
-import           Yesod.Core.Types        (Logger)
+import           Text.Hamlet                  (hamletFile)
+import           Yesod.Core.Types             (Logger)
 
 data App = App
-    { appSettings     :: AppSettings
-    , appStatic       :: EmbeddedStatic
-    , appLogger       :: Logger
-    , appDbConnection :: MVar Sql.Connection
+    { appSettings         :: AppSettings
+    , appStatic           :: EmbeddedStatic
+    , appLogger           :: Logger
+    , appDbConnection     :: MVar Sql.Connection
+    , appBookConvertQueue :: TChan Int
     }
 
 mkYesodData "App" $(parseRoutesFile "routes")
@@ -35,11 +39,14 @@ instance Yesod App where
         pc <- widgetToPageContent $(widgetFileReload def "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-runSQL :: (Sql.Connection -> IO a) -> Handler a
-runSQL f = do
-    app <- getYesod
-    liftIO $ do
-        conn <- takeMVar (appDbConnection app)
-        res <- f conn
-        putMVar (appDbConnection app) conn
-        return res
+instance RunSQL (HandlerFor App) where
+    runSQL f = do
+        mConn <- appDbConnection <$> getYesod
+        liftIO $ do
+            conn <- takeMVar mConn
+            res <- f conn
+            putMVar mConn conn
+            return res
+
+instance ReadSettings (HandlerFor App) where
+    asksSettings = appSettings <$> getYesod

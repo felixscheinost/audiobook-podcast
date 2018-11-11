@@ -8,7 +8,6 @@
 module Application where
 
 import           Control.Monad.Logger                 (liftLoc)
-import           Background                           (forkBackgroundJobs)
 import qualified Data.CaseInsensitive                 as CI
 import           Database.Calibre
 import qualified Database.SQLite.Simple               as Sql
@@ -21,8 +20,9 @@ import           Network.Wai.Handler.Warp             (Settings,
                                                        getPort, runSettings,
                                                        setOnException, setPort)
 import           Network.Wai.Middleware.Gzip          (def, gzip)
-import           Network.Wai.Middleware.RequestLogger (OutputFormat (CustomOutputFormat, Apache),
-                                                       OutputFormatter, IPAddrSource(FromSocket),
+import           Network.Wai.Middleware.RequestLogger (IPAddrSource (FromSocket),
+                                                       OutputFormat (Apache, CustomOutputFormat),
+                                                       OutputFormatter,
                                                        RequestLoggerSettings (outputFormat),
                                                        mkRequestLogger)
 import           System.Log.FastLogger                (defaultBufSize,
@@ -32,8 +32,8 @@ import           System.Log.FastLogger                (defaultBufSize,
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
 import           Handler.BooksViews
-import           Handler.SingleBook
 import           Handler.Conversion
+import           Handler.SingleBook
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -111,6 +111,5 @@ appMain = do
     foundation <- getAppSettings >>= makeFoundation
     app <- makeApplication foundation
     let wsettings = warpSettings foundation
-    --forkBackgroundJobs foundation
     putStrLn $ "Running on port " ++ tshow (getPort wsettings)
     runSettings wsettings app

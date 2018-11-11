@@ -1,17 +1,17 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 module Handler.BooksViews where
 
-import           Audiobook          (Audiobook (..))
-import qualified Audiobook          as AB
-import qualified Data.Aeson         as JSON
-import qualified Data.Text          as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Read     as TR
+import qualified Data.Aeson                 as JSON
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as TE
+import qualified Data.Text.Read             as TR
 import           Database.Calibre
+import           Database.Calibre.Audiobook (Audiobook (..))
+import qualified Database.Calibre.Audiobook as AB
 import           Foundation
 import           Import
 

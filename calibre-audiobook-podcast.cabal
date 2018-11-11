@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: de90c31f76736a63e9b69f8d607bd59032d0c085863d4d6cfc34deed17e524bb
+-- hash: 0680b13dd91670757fac750e609b94531808c82356b309c3a282b64561c2adb8
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -23,13 +23,12 @@ flag library-only
 library
   exposed-modules:
       Application
-      Audiobook
-      Background
-      Background.Conversion
-      Background.Foundation
-      Conversion
+      Conversion.Audiobook
+      Conversion.Steps
+      Conversion.Types
       Database.Calibre
-      Database.Calibre.BookFormat
+      Database.Calibre.Audiobook
+      Database.Calibre.Format
       Database.Calibre.Queries
       Database.Calibre.Tables
       Foundation
@@ -38,6 +37,7 @@ library
       Handler.SingleBook
       Import
       Import.NoFoundation
+      MyMonadStack
       Settings
       Settings.StaticFiles
       Zip
@@ -65,6 +65,7 @@ library
     , http-types
     , mime-types
     , monad-logger
+    , mtl
     , natural-sort
     , process
     , scientific
@@ -120,6 +121,7 @@ executable calibre-audiobook-podcast
     , http-types
     , mime-types
     , monad-logger
+    , mtl
     , natural-sort
     , process
     , scientific
