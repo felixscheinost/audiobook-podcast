@@ -11,17 +11,21 @@ module Foundation where
 
 import           Control.Concurrent.MVar      (MVar)
 import           Control.Concurrent.STM.TChan (TChan)
+import           Conversion.Audiobook         (Conversion)
 import qualified Database.SQLite.Simple       as Sql
 import           Import.NoFoundation
 import           Text.Hamlet                  (hamletFile)
-import           Yesod.Core.Types             (Logger)
 
 data App = App
-    { appSettings         :: AppSettings
-    , appStatic           :: EmbeddedStatic
-    , appLogger           :: Logger
-    , appDbConnection     :: MVar Sql.Connection
-    , appBookConvertQueue :: TChan Int
+    { appSettings             :: AppSettings
+    , appStatic               :: EmbeddedStatic
+    , appLogger               :: Logger
+    , appDbConnection         :: MVar Sql.Connection
+    -- Frontend queues ID to be converted
+    , appBookIdToConvertQueue :: TChan Int
+    -- Backend queues conversation
+    , appConversionQueue      :: TChan Conversion
+    , appConversions          :: TVar [Conversion]
     }
 
 mkYesodData "App" $(parseRoutesFile "routes")

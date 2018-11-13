@@ -7,6 +7,8 @@
 
 module Application where
 
+import qualified Background.Conversion                as Background
+import qualified Background.Foundation                as Background
 import           Control.Monad.Logger                 (liftLoc)
 import qualified Data.CaseInsensitive                 as CI
 import           Database.Calibre
@@ -47,6 +49,9 @@ makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
+    appBookIdToConvertQueue <- newTChanIO
+    appConversionQueue <- newTChanIO
+    appConversions <- newTVarIO []
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and

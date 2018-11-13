@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0680b13dd91670757fac750e609b94531808c82356b309c3a282b64561c2adb8
+-- hash: 95f521bf97dbb2185481a05936031c569d20abc2cc577df19712629aa77b3ca3
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -37,7 +37,7 @@ library
       Handler.SingleBook
       Import
       Import.NoFoundation
-      MyMonadStack
+      MonadConstraints
       Settings
       Settings.StaticFiles
       Zip

@@ -30,7 +30,7 @@ data StepData i o p d = StepData
     , state       :: TVar (StepState p)
     }
 
--- | Conversion step that takes i and produces o, for description takes id and produces od for next description
+-- | Conversion step that takes i, produces o, stores its progress as p and description as d
 data Step i o p d
     = Single (StepData i o p d)
-    | forall u ud p'. Nested (StepData i u p d) (Step u o p' d)
+    | forall u p'. Nested (StepData i u p d) (Step u o p' d)

@@ -13,7 +13,7 @@ module Database.Calibre.Tables where
 
 import           Database.Beam
 import           Database.Calibre.Format
-import           Import
+import           Import.NoFoundation
 
 
 -------------------------------------

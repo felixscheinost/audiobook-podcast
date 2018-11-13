@@ -15,10 +15,8 @@ module Database.Calibre.Audiobook (
 ) where
 
 import qualified Database.Calibre        as Database
-import           Database.Calibre.Format (AudioFormat,
-                                          CalibreBookFormat (Audio))
-import           Database.Calibre.Tables (CalibreBook, CalibreBookData,
-                                          CalibreSeries)
+import           Database.Calibre.Format (CalibreBookFormat (Audio))
+import           Database.Calibre.Tables (CalibreBook, CalibreSeries)
 import           Import.NoFoundation
 import qualified Settings
 
@@ -54,7 +52,7 @@ listSeries = playableFormats >>= (runSQL . Database.listSeries)
 getAudiobook :: (MonadHandler m, ReadSettings m, RunSQL m) => Int -> m Audiobook
 getAudiobook _id = runSQL (Database.getBook _id) >>= maybe notFound calibreBookToAudiobook
 
-calibreBookToAudiobook :: (ReadSettings m, RunSQL m) => CalibreBook -> m Audiobook
+calibreBookToAudiobook :: ReadSettings m => CalibreBook -> m Audiobook
 calibreBookToAudiobook book = do
     let abId = Database.bookId book
     let abTitle = Database.bookTitle book

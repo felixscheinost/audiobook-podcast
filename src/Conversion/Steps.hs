@@ -13,7 +13,6 @@ import           Control.Monad               (liftM2)
 import           Control.Monad.Trans.Except  (ExceptT, throwE)
 import           Conversion.Types
 import qualified Data.List                   as List
-import           System.IO.Temp              (getCanonicalTemporaryDirectory)
 import qualified Zip
 
 -- | Run two steps after each other

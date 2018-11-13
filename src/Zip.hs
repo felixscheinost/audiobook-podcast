@@ -5,23 +5,20 @@ module Zip (
     UnzipProgress
 ) where
 
-import qualified Codec.Archive.Zip           as Zip
-import qualified Control.Concurrent.STM      as STM
-import           Control.Concurrent.STM.TVar
+import qualified Codec.Archive.Zip        as Zip
 import           Control.Monad
-import           Control.Monad.IO.Class      (MonadIO, liftIO)
-import qualified Data.ByteString             as BS
-import           Data.Conduit                ((.|))
-import qualified Data.Conduit                as Conduit
-import qualified Data.Conduit.Binary         as Conduit
-import qualified Data.Conduit.Combinators    as Conduit
-import qualified Data.List                   as List
-import qualified Data.Map                    as Map
-import qualified Data.Set                    as Set
-import           GHC.Exts                    (toList)
+import           Control.Monad.IO.Class   (MonadIO, liftIO)
+import qualified Data.ByteString          as BS
+import           Data.Conduit             ((.|))
+import qualified Data.Conduit             as Conduit
+import qualified Data.Conduit.Binary      as Conduit
+import qualified Data.Conduit.Combinators as Conduit
+import qualified Data.Map                 as Map
+import qualified Data.Set                 as Set
+import           GHC.Exts                 (toList)
 import           System.Directory
-import           System.FilePath             ((</>))
-import qualified System.FilePath             as FP
+import           System.FilePath          ((</>))
+import qualified System.FilePath          as FP
 
 getFilePathsInZip :: MonadIO m => FilePath -> m [FilePath]
 getFilePathsInZip fp = Zip.withArchive fp (fmap Zip.unEntrySelector . Map.keys <$> Zip.getEntries)

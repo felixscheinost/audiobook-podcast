@@ -1,2 +1,2 @@
 #!/bin/sh
-stack build --ghc-options -DDEVELOPMENT && stack exec -- calibre-audiobook-podcast
+stack build --flag calibre-audiobook-podcast:dev --ghc-options -DDEVELOPMENT && stack exec -- calibre-audiobook-podcast

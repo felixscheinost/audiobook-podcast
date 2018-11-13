@@ -7,7 +7,6 @@ module Database.Calibre (
     libraryPath,
     bookCover,
     formatDataFullPath,
-    BookAndData,
     module Database.Calibre.Format,
     module Database.Calibre.Tables,
     module Database.Calibre.Queries
