@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 95f521bf97dbb2185481a05936031c569d20abc2cc577df19712629aa77b3ca3
+-- hash: 800683d1d09943f535b5bb55293f2ea746634ca7e90211dbf18ef60ba93d9fcd
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -23,6 +23,8 @@ flag library-only
 library
   exposed-modules:
       Application
+      Background.Conversion
+      Background.Foundation
       Conversion.Audiobook
       Conversion.Steps
       Conversion.Types
@@ -31,6 +33,7 @@ library
       Database.Calibre.Format
       Database.Calibre.Queries
       Database.Calibre.Tables
+      FFmpeg
       Foundation
       Handler.BooksViews
       Handler.Conversion
@@ -68,6 +71,8 @@ library
     , mtl
     , natural-sort
     , process
+    , process-extras
+    , safe-exceptions
     , scientific
     , shakespeare
     , sqlite-simple
@@ -124,6 +129,8 @@ executable calibre-audiobook-podcast
     , mtl
     , natural-sort
     , process
+    , process-extras
+    , safe-exceptions
     , scientific
     , shakespeare
     , sqlite-simple
