@@ -2,7 +2,6 @@ BookView: Alle Hörbücher
 SeriesView: Nach Reihe
 BookNeedConvertView: Benötigen Konvertierung
 ConversionsView: Konvertierungen
-SettingsView: Einstellungen
 NavBookCategory: Hörbücher
 
 Search: Suchen

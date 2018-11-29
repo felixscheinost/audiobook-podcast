@@ -14,7 +14,7 @@ import           Import
 data Background = Background
     { backgroundSettings             :: AppSettings
     , backgroundLogger               :: Logger
-    , backgroundDbConnection         :: MVar Sql.Connection
+    , backgroundDbConnection         :: MVar (Maybe Sql.Connection)
     , backgroundBookIdToConvertQueue :: TChan Int
     , backgroundConversionQueue      :: TChan Conversion
     , backgroundConversions          :: TVar [Conversion]
@@ -26,13 +26,7 @@ instance ReadSettings BackgroundAction where
     asksSettings = asks backgroundSettings
 
 instance RunSQL BackgroundAction where
-    runSQL f = do
-        mConn <- asks backgroundDbConnection
-        liftIO $ do
-            conn <- takeMVar mConn
-            res <- f conn
-            putMVar mConn conn
-            return res
+    dbConnection = asks backgroundDbConnection
 
 runBackground :: App -> BackgroundAction b -> IO b
 runBackground App{..} background = do

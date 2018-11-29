@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 800683d1d09943f535b5bb55293f2ea746634ca7e90211dbf18ef60ba93d9fcd
+-- hash: fbd0fd6f0911e257368b62b164a659130653720a1e6171eefdc69ca301f72b67
 
 name:           calibre-audiobook-podcast
 version:        0.0.0
@@ -35,12 +35,12 @@ library
       Database.Calibre.Tables
       FFmpeg
       Foundation
+      Handler.Admin
       Handler.BooksViews
       Handler.Conversion
       Handler.SingleBook
       Import
       Import.NoFoundation
-      MonadConstraints
       Settings
       Settings.StaticFiles
       Zip
@@ -61,6 +61,7 @@ library
     , conduit
     , conduit-extra
     , containers
+    , direct-sqlite
     , directory
     , exceptions
     , fast-logger
@@ -119,6 +120,7 @@ executable calibre-audiobook-podcast
     , conduit
     , conduit-extra
     , containers
+    , direct-sqlite
     , directory
     , exceptions
     , fast-logger

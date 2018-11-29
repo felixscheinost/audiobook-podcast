@@ -44,6 +44,7 @@ dependencies:
 - mtl
 - safe-exceptions
 - process-extras
+- direct-sqlite
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

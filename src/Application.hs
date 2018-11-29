@@ -12,7 +12,6 @@ import qualified Background.Foundation                as Background
 import           Control.Monad.Logger                 (liftLoc)
 import qualified Data.CaseInsensitive                 as CI
 import           Database.Calibre
-import qualified Database.SQLite.Simple               as Sql
 import           Import                               hiding (requestHeaders)
 import           Language.Haskell.TH.Syntax           (qLocation)
 import           Network.Wai                          (Middleware, Request (..))
@@ -48,14 +47,14 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appDbConnection <- Sql.open (libraryPath appSettings) >>= newMVar
+    appDbConnection <- newMVar Nothing
     appBookIdToConvertQueue <- newTChanIO
     appConversionQueue <- newTChanIO
     appConversions <- newTVarIO []
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
--- applying some additional middlewares.
+--   applying some additional middlewares.
 makeApplication :: App -> IO Application
 makeApplication foundation = do
     logWare <- makeLogWare foundation

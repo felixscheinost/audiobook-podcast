@@ -5,6 +5,7 @@
 
 module Settings (
     AppSettings(..),
+    ReadSettings(..),
     getAppSettings,
     widgetFile,
     widgetFileReload,
@@ -28,6 +29,9 @@ data AppSettings = AppSettings
     , appDirectPlayFormats      :: [AudioFormat]
     , appConversionTargetFormat :: AudioFormat
     }
+
+class Monad m => ReadSettings m where
+    asksSettings :: m AppSettings
 
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do

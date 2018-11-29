@@ -5,7 +5,6 @@ module Import.NoFoundation
 
 import           ClassyPrelude.Yesod   as Import
 import           Control.Monad.Logger  as Import
-import           MonadConstraints      as Import
 import           Settings              as Import
 import           Settings.StaticFiles  as Import
 import           System.FilePath       as Import ((<.>), (</>))

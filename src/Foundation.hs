@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -12,7 +13,10 @@ module Foundation where
 import           Control.Concurrent.MVar      (MVar)
 import           Control.Concurrent.STM.TChan (TChan)
 import           Conversion.Audiobook         (Conversion)
+import           Database.Calibre             (RunSQL (..))
+import           Database.Calibre             (libraryPath)
 import qualified Database.SQLite.Simple       as Sql
+import           Database.SQLite3             (SQLError)
 import           Import.NoFoundation
 import           Text.Hamlet                  (hamletFile)
 
@@ -20,7 +24,7 @@ data App = App
     { appSettings             :: AppSettings
     , appStatic               :: EmbeddedStatic
     , appLogger               :: Logger
-    , appDbConnection         :: MVar Sql.Connection
+    , appDbConnection         :: MVar (Maybe (Sql.Connection))
     -- Frontend queues ID to be converted
     , appBookIdToConvertQueue :: TChan Int
     -- Backend queues conversation
@@ -44,13 +48,7 @@ instance Yesod App where
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 instance RunSQL (HandlerFor App) where
-    runSQL f = do
-        mConn <- appDbConnection <$> getYesod
-        liftIO $ do
-            conn <- takeMVar mConn
-            res <- f conn
-            putMVar mConn conn
-            return res
+    dbConnection = appDbConnection <$> getYesod
 
 instance ReadSettings (HandlerFor App) where
     asksSettings = appSettings <$> getYesod

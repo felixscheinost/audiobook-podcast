@@ -2,7 +2,6 @@ BookView: All audiobooks
 SeriesView: By series
 BookNeedConvertView:Need conversion
 ConversionsView: Conversions
-SettingsView: Settings
 NavBookCategory: Audiobooks
 
 Search: Search

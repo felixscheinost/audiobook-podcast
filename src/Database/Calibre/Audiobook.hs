@@ -14,6 +14,7 @@ module Database.Calibre.Audiobook (
     Audiobook(..),
 ) where
 
+import           Database.Calibre        (RunSQL (..), runSQL)
 import qualified Database.Calibre        as Database
 import           Database.Calibre.Format (CalibreBookFormat (Audio))
 import           Database.Calibre.Tables (CalibreBook, CalibreSeries)
