@@ -7,22 +7,18 @@
                 <li .nav-item.nav-cat-item :currentIs BookViewR:.active>
                     <a .nav-link href=@{BookViewR}>
                         <i .fas.fa-book-open>
-                            _{MsgBookView}
+                        _{MsgBookView}
                 <li .nav-item.nav-cat-item :currentIsSeries:.active>
                     <a .nav-link href=@{SeriesViewR}>
                         <i .fas.fa-list>
-                            _{MsgSeriesView}
+                        _{MsgSeriesView}
                 <li .nav-item.nav-cat-item :currentIs BookNeedConvertR:.active>
                     <a .nav-link href=@{BookNeedConvertR}>
                         <i .fas.fa-book-open>
-                            _{MsgBookNeedConvertView}
+                        _{MsgBookNeedConvertView}
                 <li .nav-item.nav-item :currentIs ConversionViewR:.active>
                     <a .nav-link href=@{ConversionViewR}>
                         <i .fas.fa-cogs>
-                            _{MsgConversionsView}
-                <li .nav-item.nav-item>
-                    <a .nav-link href=@{SeriesViewR}>
-                        <i .fas.fa-wrench>
-                            _{MsgSettingsView}
-                            <main .col-md-10>
-                                ^{widget}
+                        _{MsgConversionsView}
+        <main .col-md-10>
+            ^{widget}
