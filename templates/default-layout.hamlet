@@ -20,5 +20,5 @@
                     <a .nav-link href=@{ConversionViewR}>
                         <i .fas.fa-cogs>
                         _{MsgConversionsView}
-        <main .col-md-10>
+        <main .col-md-10 .offset-md-2>
             ^{widget}

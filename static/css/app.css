@@ -73,6 +73,9 @@ body {
 .sidebar {
     height: 100vh;
     padding: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .sidebar li {
