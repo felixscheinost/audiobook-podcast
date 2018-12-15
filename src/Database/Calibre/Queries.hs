@@ -8,7 +8,7 @@ module Database.Calibre.Queries (
     listBooks, listBooksMissingFormats,
     listSeries,
     listBooksInSeries,
-    listBookData,
+    listBookDataForIds,
     BookAndData
 ) where
 
@@ -83,8 +83,9 @@ listBooksInSeries _seriesId formats conn = runBeamSqlite conn $ runSelectReturni
     guard_ (seriesId s ==. val_ _seriesId)
     return bb
 
-listBookData :: Int -> Connection -> IO [BookAndData]
-listBookData _bookId conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+listBookDataForIds :: [Int] -> [CalibreBookFormat] -> Connection -> IO [BookAndData]
+listBookDataForIds _bookIds formats conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     (b, d) <- booksWithFormats allCalibreBookFormats
-    guard_ (bookId b ==. val_ _bookId)
+    guard_ (bookId b `in_` (val_ <$> _bookIds))
+    guard_ (dataFormat d `in_` (val_ <$> formats))
     return (b, d)

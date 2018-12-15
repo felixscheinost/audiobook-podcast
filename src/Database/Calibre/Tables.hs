@@ -11,6 +11,7 @@
 
 module Database.Calibre.Tables where
 
+import           Data.Function           (on)
 import           Database.Beam
 import           Database.Calibre.Format
 import           Import.NoFoundation
@@ -34,6 +35,9 @@ type CalibreBookId = PrimaryKey CalibreBookT Identity
 deriving instance Show CalibreBook
 deriving instance Eq CalibreBook
 deriving instance Show CalibreBookId
+
+instance Ord CalibreBook where
+    compare = compare `on` bookId
 
 instance Beamable CalibreBookT
 instance Table CalibreBookT where

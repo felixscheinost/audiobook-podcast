@@ -101,19 +101,23 @@ warpSettings foundation =
             $(qLocation >>= liftLoc) "yesod" LevelError (toLogStr $ "Exception from Warp: " ++ show e))
         defaultSettings
 
+-- | main code shared by develMain and appMain
+appDevelMain :: IO (Settings, Application)
+appDevelMain = do
+    foundation <- getAppSettings >>= makeFoundation
+    app <- makeApplication foundation
+    return (warpSettings foundation, app)
+
 -- | main function for use by yesod devel
 develMain :: IO ()
 develMain = develMainHelper $ do
-    foundation <- getAppSettings >>= makeFoundation
-    app <- makeApplication foundation
-    devWsettings <- getDevSettings $ warpSettings foundation
-    return (devWsettings, app)
+    (settings, app) <- appDevelMain
+    devSettings <- getDevSettings settings
+    return (devSettings, app)
 
 -- | The @main@ function for an executable running this site.
 appMain :: IO ()
 appMain = do
-    foundation <- getAppSettings >>= makeFoundation
-    app <- makeApplication foundation
-    let wsettings = warpSettings foundation
-    putStrLn $ "Running on port " ++ tshow (getPort wsettings)
-    runSettings wsettings app
+    (settings, app) <- appDevelMain
+    putStrLn $ "Running on port " ++ tshow (getPort settings)
+    runSettings settings app

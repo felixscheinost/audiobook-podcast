@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE OverloadedStrings         #-}
 
-module Conversion.Steps where
+module Conversion.Step where
 
 import           Control.Concurrent          (threadDelay)
 -- import qualified Algorithms.NaturalSort      as NaturalSort
@@ -11,9 +11,39 @@ import qualified Control.Concurrent.STM      as STM
 import           Control.Concurrent.STM.TVar
 import           Control.Monad               (liftM2)
 import           Control.Monad.Trans.Except  (ExceptT, throwE)
-import           Conversion.Types
 import qualified Data.List                   as List
 import qualified Zip
+
+
+-- | State of the step
+data StepState a
+    = Waiting
+    | Running (Maybe a)
+    | Finished
+
+-- | Step action that takes i as input, produces o as output and has progress information p
+type StepAction i o p =  ((Maybe p -> Maybe p) -> IO ()) -> i -> IO o
+
+class StepProgress a where
+    asPercentDouble :: a -> Double
+
+instance StepProgress (Integer, Integer) where
+    asPercentDouble (delta, total) = 100 * fromIntegral delta / fromIntegral total
+
+instance StepProgress Double where
+    asPercentDouble = id
+
+-- | Holds the data for one conversion step
+data StepData i o p d = StepData
+    { action      :: StepAction i o p
+    , description :: i -> Maybe d
+    , state       :: TVar (StepState p)
+    }
+
+-- | Conversion step that takes i, produces o, stores its progress as p and description as d
+data Step i o p d
+    = Single (StepData i o p d)
+    | forall u p'. Nested (StepData i u p d) (Step u o p' d)
 
 -- | Run two steps after each other
 andThen :: Step i u p d -> Step u o p' d -> Step i o p d

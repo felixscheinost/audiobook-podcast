@@ -4,8 +4,7 @@
 
 module Conversion.Audiobook where
 
-import           Conversion.Steps
-import           Conversion.Types
+import           Conversion.Step
 import           Database.Calibre.Audiobook (Audiobook)
 import           Database.Calibre.Format    (AudioFormat)
 import           Import.NoFoundation

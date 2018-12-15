@@ -14,10 +14,14 @@ module Database.Calibre.Audiobook (
     Audiobook(..),
 ) where
 
+import           Data.Function           (on)
+import qualified Data.Map.Strict         as Map
+import           Data.Maybe              (mapMaybe)
 import           Database.Calibre        (RunSQL (..), runSQL)
 import qualified Database.Calibre        as Database
 import           Database.Calibre.Format (CalibreBookFormat (Audio))
-import           Database.Calibre.Tables (CalibreBook, CalibreSeries)
+import           Database.Calibre.Tables (CalibreBook, CalibreBookData,
+                                          CalibreSeries)
 import           Import.NoFoundation
 import qualified Settings
 
@@ -52,6 +56,14 @@ listSeries = playableFormats >>= (runSQL . Database.listSeries)
 
 getAudiobook :: (MonadHandler m, ReadSettings m, RunSQL m) => Int -> m Audiobook
 getAudiobook _id = runSQL (Database.getBook _id) >>= maybe notFound calibreBookToAudiobook
+
+listBooksWithFormatsForIds :: (ReadSettings m, RunSQL m) => [Int] -> m [(Audiobook, [CalibreBookData])]
+listBooksWithFormatsForIds ids = do
+    formats <- playableFormats
+    bookDatas <- runSQL $ Database.listBookDataForIds ids formats
+    let toMapEntry (book, bookData) = (book, [bookData])
+    let toAudiobook (book, bookDatas) = (, bookDatas) <$> calibreBookToAudiobook book
+    mapM toAudiobook $ Map.toList $ Map.fromListWith (++) (fmap toMapEntry bookDatas)
 
 calibreBookToAudiobook :: ReadSettings m => CalibreBook -> m Audiobook
 calibreBookToAudiobook book = do
