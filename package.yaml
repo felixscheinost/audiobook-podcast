@@ -1,4 +1,4 @@
-name:    calibre-audiobook-podcast
+name:    audiobook-podcast
 version: "0.0.0"
 
 dependencies:
@@ -70,7 +70,7 @@ library:
 
 # Runnable executable for our application
 executables:
-  calibre-audiobook-podcast:
+  audiobook-podcast:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -78,7 +78,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - calibre-audiobook-podcast
+    - audiobook-podcast
     when:
     - condition: flag(library-only)
       buildable: false

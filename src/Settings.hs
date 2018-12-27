@@ -14,7 +14,6 @@ module Settings (
 
 import           ClassyPrelude.Yesod
 import           Data.Aeson                 (withObject, (.!=), (.:?))
-import           Database.Calibre.Format    (AudioFormat (..))
 import           Language.Haskell.TH.Syntax (Exp, Q)
 import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
 import           Yesod.Default.Util         (WidgetFileSettings,
@@ -22,12 +21,9 @@ import           Yesod.Default.Util         (WidgetFileSettings,
                                              widgetFileReload)
 
 data AppSettings = AppSettings
-    { appPort                   :: Int
-    , appCalibreLibraryFolder   :: String
-    , appDevelopment            :: Bool
-    , appMp3Quality             :: Int
-    , appDirectPlayFormats      :: [AudioFormat]
-    , appConversionTargetFormat :: AudioFormat
+    { appPort          :: Int
+    , appLibraryFolder :: FilePath
+    , appDevelopment   :: Bool
     }
 
 class Monad m => ReadSettings m where
@@ -35,12 +31,8 @@ class Monad m => ReadSettings m where
 
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
-        appPort                 <- o .:? "port" .!= 8090
-        appCalibreLibraryFolder <- o .:  "calibre-library"
-        quality                 <- o .:?  "mp3-quality" .!= 7
-        appMp3Quality <-
-            if 0 <= quality && quality <= 9 then return quality
-            else fail "mp3-quality neds to be between 0-9"
+        appPort          <- o .:? "port" .!= 8090
+        appLibraryFolder <- o .:  "library"
         let defaultDevelopment =
 #ifdef DEVELOPMENT
                 True
@@ -48,8 +40,6 @@ instance FromJSON AppSettings where
                 False
 #endif
         appDevelopment          <- o .:? "development" .!= defaultDevelopment
-        appDirectPlayFormats    <- o .:? "play-without-conversion" .!= []
-        appConversionTargetFormat      <- o .:? "conversion-format" .!= MP3
         return AppSettings {..}
 
 getAppSettings :: IO AppSettings

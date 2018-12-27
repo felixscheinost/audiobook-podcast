@@ -8,7 +8,6 @@ module FFmpeg (
 import           Control.Exception.Safe
 import           Control.Monad
 import           Data.Aeson
-import qualified Data.Either               as Either
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
 import qualified Data.Text.Encoding        as TextEncoding

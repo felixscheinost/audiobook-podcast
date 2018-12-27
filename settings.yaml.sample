@@ -1,8 +1,2 @@
-# The path to your calibre folder
-calibre-library: /home/user/Calibre-Library
-
-# The quality of the generated MP3 files
-# Value between 0 (better) and 9 (worse)
-# Audiobooks need less quality than music.
-# See https://trac.ffmpeg.org/wiki/Encode/MP3 for more information 
-mp3-quality: 7 
+# The path to the folder containing audiobooks
+library: /home/user/Audiobooks

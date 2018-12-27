@@ -5,22 +5,30 @@
 
 module Handler.SingleBook where
 
-import qualified Data.ByteString.Builder    as BSB
-import           Data.Conduit               (Flush (..))
-import           Data.Conduit.Binary        (sourceFileRange)
-import qualified Data.Text                  as T
-import           Data.Time.Clock            (getCurrentTime)
-import           Database.Calibre.Audiobook (Audiobook (..))
-import qualified Database.Calibre.Audiobook as Audiobook
-import           Import                     hiding (count, fileSize)
-import qualified Network.HTTP.Types         as HTTP
-import           Network.Mime               (defaultMimeLookup)
-import           System.FilePath            (takeFileName)
-import           System.IO                  (IOMode (ReadMode))
+import qualified Data.ByteString.Builder as BSB
+import           Data.Conduit            (Flush (..))
+import           Data.Conduit.Binary     (sourceFileRange)
+import qualified Data.Text               as T
+import           Data.Time.Clock         (getCurrentTime)
+import           Database                (Audiobook, AudiobookT (..))
+import qualified Database                as DB
+import           Import                  hiding (count, fileSize)
+import qualified Library
+import qualified Network.HTTP.Types      as HTTP
+import           Network.Mime            (defaultMimeLookup)
+import           System.FilePath         (takeFileName)
+import           System.IO               (IOMode (ReadMode))
 import           Yesod.RssFeed
 
 rangeNotSatisfiAudiobookle :: Handler a
 rangeNotSatisfiAudiobookle = sendResponseStatus status416 ("" :: Text)
+
+getAudiobook :: Int -> Handler Audiobook
+getAudiobook _id = do
+    maybeBook <- runSQL (DB.getAudiobook _id)
+    case maybeBook of
+        Just book -> return book
+        _         -> notFound
 
 type FileSize = Integer
 
@@ -90,14 +98,14 @@ sendFileMimeConduit fp = do
     sendFileConduit mime fp
 
 getBookCoverR :: Int -> Handler TypedContent
-getBookCoverR _id = Audiobook.getAudiobook _id >>= (sendFileMime . Audiobook.abCover)
+getBookCoverR _id = getAudiobook _id >>= (sendFileMime . Library.getAudiobookCover)
 
 getBookFileR :: Int -> Handler TypedContent
-getBookFileR _id = Audiobook.getAudiobook _id >>= (sendFileMime . Audiobook.abCover)
+getBookFileR _id = getAudiobook _id >>= (sendFileMime . Library.getAudiobookCover)
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
-    Audiobook{abTitle=abTitle} <- Audiobook.getAudiobook _id
+    Audiobook{abTitle=abTitle} <- getAudiobook _id
     pc <- widgetToPageContent [whamlet|
         <div .modal-content>
             <div .modal-header>
@@ -119,7 +127,7 @@ bookFeed :: UTCTime -> Audiobook -> Feed (Route App)
 bookFeed now Audiobook{..} = Feed
     { feedTitle = abTitle
     , feedLinkSelf = BookRssR abId
-    , feedLinkHome = HomeR
+    , feedLinkHome = BookViewR
     , feedAuthor = ""
     , feedDescription = ""
     , feedLanguage = "en"
@@ -142,6 +150,6 @@ bookFeed now Audiobook{..} = Feed
 
 getBookRssR :: Int -> Handler RepRss
 getBookRssR _id = do
-    b <- Audiobook.getAudiobook _id
+    b <- getAudiobook _id
     now <- liftIO getCurrentTime
     rssFeed $ bookFeed now b

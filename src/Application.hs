@@ -7,11 +7,9 @@
 
 module Application where
 
-import qualified Background.Conversion                as Background
-import qualified Background.Foundation                as Background
 import           Control.Monad.Logger                 (liftLoc)
 import qualified Data.CaseInsensitive                 as CI
-import           Database.Calibre
+import qualified Database.SQLite.Simple               as Sql
 import           Import                               hiding (requestHeaders)
 import           Language.Haskell.TH.Syntax           (qLocation)
 import           Network.Wai                          (Middleware, Request (..))
@@ -33,7 +31,6 @@ import           System.Log.FastLogger                (defaultBufSize,
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
 import           Handler.BooksViews
-import           Handler.Conversion
 import           Handler.SingleBook
 
 -- This line actually creates our YesodDispatch instance. It is the second half
@@ -47,10 +44,7 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appDbConnection <- newMVar Nothing
-    appBookIdToConvertQueue <- newTChanIO
-    appConversionQueue <- newTChanIO
-    appConversions <- newTVarIO []
+    appDbConnection <- Sql.open ":memory:" >>= newMVar
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
@@ -71,8 +65,7 @@ makeLogWare foundation =
             outputFormat =  CustomOutputFormat logWareFormat
         }
     else
-        return id
-        --mkRequestLogger def { outputFormat = Apache FromSocket }
+        mkRequestLogger def { outputFormat = Apache FromSocket }
 
 logWareFormat :: OutputFormatter
 logWareFormat _ req status _ =
