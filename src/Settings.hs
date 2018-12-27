@@ -9,10 +9,12 @@ module Settings (
     getAppSettings,
     widgetFile,
     widgetFileReload,
-    def
+    def,
+    runSettingsReader
 ) where
 
 import           ClassyPrelude.Yesod
+import           Control.Monad.Trans.Reader (ReaderT)
 import           Data.Aeson                 (withObject, (.!=), (.:?))
 import           Language.Haskell.TH.Syntax (Exp, Q)
 import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
@@ -21,17 +23,23 @@ import           Yesod.Default.Util         (WidgetFileSettings,
                                              widgetFileReload)
 
 data AppSettings = AppSettings
-    { appPort          :: Int
-    , appLibraryFolder :: FilePath
-    , appDevelopment   :: Bool
+    { appPort            :: Int
+    , appLibraryFolder   :: FilePath
+    , appDevelopment     :: Bool
+    , appAudioExtensions :: [Text]
     }
 
 class Monad m => ReadSettings m where
     asksSettings :: m AppSettings
 
+runSettingsReader :: ReadSettings m => ReaderT AppSettings n a -> m (n a)
+runSettingsReader r = runReaderT r <$> asksSettings
+
 instance FromJSON AppSettings where
     parseJSON = withObject "AppSettings" $ \o -> do
         appPort          <- o .:? "port" .!= 8090
+        let defaultAudioExtensions = ["mp3"]
+        appAudioExtensions <- o .:? "audio-files" .!= defaultAudioExtensions
         appLibraryFolder <- o .:  "library"
         let defaultDevelopment =
 #ifdef DEVELOPMENT

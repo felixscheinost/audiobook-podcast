@@ -1,2 +1,6 @@
-# The path to the folder containing audiobooks
+# REQUIRED: The path to the folder containing audiobooks
 library: /home/user/Audiobooks
+
+# OPTIONAL: List of file extensions that are considered audio books
+# audio-files:
+#    - mp3

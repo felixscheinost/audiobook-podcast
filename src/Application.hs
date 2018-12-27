@@ -31,6 +31,7 @@ import           System.Log.FastLogger                (defaultBufSize,
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
 import           Handler.BooksViews
+import           Handler.Library
 import           Handler.SingleBook
 
 -- This line actually creates our YesodDispatch instance. It is the second half

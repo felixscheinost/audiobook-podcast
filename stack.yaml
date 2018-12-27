@@ -41,6 +41,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - beam-sqlite-0.3.2.3@sha256:5b3a3a81f06ad05d2d461847b3c1bb4130a1dd38c8b5dc129df311c4230fd46b
+- regex-1.0.1.4
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

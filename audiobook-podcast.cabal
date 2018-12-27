@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78e05150f7e3180db6cf27f9294435f737d8a6d5d9995316d15c5de667305c87
+-- hash: b5447dea45cc34069109cc40178d2f0978232aeffa07943b6c9550b3458045b0
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -29,6 +29,7 @@ library
       FFmpeg
       Foundation
       Handler.BooksViews
+      Handler.Library
       Handler.SingleBook
       Import
       Import.NoFoundation
@@ -42,6 +43,7 @@ library
   build-depends:
       aeson
     , async
+    , attoparsec
     , base
     , beam-core
     , beam-sqlite
@@ -52,7 +54,6 @@ library
     , conduit
     , conduit-extra
     , containers
-    , direct-sqlite
     , directory
     , exceptions
     , fast-logger
@@ -100,6 +101,7 @@ executable audiobook-podcast
   build-depends:
       aeson
     , async
+    , attoparsec
     , audiobook-podcast
     , base
     , beam-core
@@ -111,7 +113,6 @@ executable audiobook-podcast
     , conduit
     , conduit-extra
     , containers
-    , direct-sqlite
     , directory
     , exceptions
     , fast-logger

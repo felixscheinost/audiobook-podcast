@@ -22,7 +22,8 @@ data AudiobookT f = Audiobook
     , abPath        :: Columnar f Text
     , abTitle       :: Columnar f Text
     , abAuthor      :: Columnar f Text
-    , abSeriesIndex :: Columnar f Int
+    , abSeries      :: Columnar f (Maybe Text)
+    , abSeriesIndex :: Columnar f (Maybe Int)
     } deriving Generic
 
 type Audiobook = AudiobookT Identity

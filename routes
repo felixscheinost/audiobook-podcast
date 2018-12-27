@@ -4,7 +4,9 @@
 
 /static         StaticR     EmbeddedStatic      appStatic
 
-/                             BookViewR                 GET
+/                             BookViewR             GET
+
+/reload                       ReloadLibraryR        GET
 
 /book/#Int/cover              BookCoverR            GET
 /book/#Int/overlay            BookOverlayR          GET
