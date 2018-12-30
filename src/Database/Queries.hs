@@ -8,9 +8,15 @@
 module Database.Queries (
     getAudiobook,
     listBooks,
+    listBooksQuery,
+    deleteAllAudiobooks
 ) where
 
+import           Control.Monad                   (forM)
+import           Data.Maybe                      (fromMaybe)
 import           Data.Proxy
+import           Data.Text                       (Text)
+import qualified Data.Text                       as T
 import           Database.Beam
 import           Database.Beam.Backend.SQL.SQL92 (IsSql92DeleteSyntax,
                                                   deleteStmt,
@@ -27,7 +33,20 @@ getAudiobook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select 
     return b
 
 listBooks :: Connection -> IO [Audiobook]
-listBooks conn = runBeamSqlite conn $ runSelectReturningList $ select $ all_ (dbAudiobooks db)
+listBooks = listBooksQuery Nothing
+
+listBooksQuery :: Maybe Text -> Connection -> IO [Audiobook]
+listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+    b <- all_ (dbAudiobooks db)
+    guard_ $
+        let
+            word = fromMaybe "" mQuery
+        -- foldl (&&.) $ forM (maybe [] T.words mQuery) $ \word ->
+        in
+            (abTitle b `like_` val_ ("%" <> word <> "%"))
+                ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
+                ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
+    return b
 
 deleteAll :: forall be db delete table
             . IsSql92DeleteSyntax delete
@@ -41,4 +60,4 @@ deleteAll (DatabaseEntity (DatabaseTable tblNm tblSettings)) = SqlDelete (delete
         alias = if supportsAlias then Just tgtName else Nothing
 
 deleteAllAudiobooks :: Connection -> IO ()
-deleteAllAudiobooks conn = runBeamSqlite conn $ runDelete $ deleteAll (dbAudiobooks db)
+deleteAllAudiobooks conn = runBeamSqliteDebug print conn $ runDelete $ deleteAll (dbAudiobooks db)

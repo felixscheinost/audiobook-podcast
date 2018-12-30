@@ -14,6 +14,7 @@ import qualified Data.Conduit.List        as CDTL
 import qualified Data.Text                as T
 import qualified Data.Text.Encoding       as E
 import           Database                 (Audiobook, AudiobookT (..))
+import qualified Database
 import           Foundation
 import           Import
 import qualified Library
@@ -27,6 +28,7 @@ getReloadLibraryR :: Handler TypedContent
 getReloadLibraryR = do
     libraryFolder <- appLibraryFolder <$> asksSettings
     predicate <- Library.isAudioFile
+    runSQL Database.deleteAllAudiobooks
     let cdt = CDT.sourceDirectoryDeep True libraryFolder
             .| CDT.filter predicate
             .| CDT.mapM Library.audiobookFromFilePath
@@ -34,7 +36,7 @@ getReloadLibraryR = do
                     Left err -> logErrorN (T.pack err) >> return Nothing
                     Right ab -> return (Just ab)
                 )
-            .| CDT.iterM (runSQL . Library.insertAudiobook)
+            .| CDT.iterM (runSQL . Database.insertAudiobook)
     respondSource "text/plain" $
         CDT.mapOutput (Chunk . (<> BSB.char8 '\n') . BSB.byteString . E.encodeUtf8 . p) cdt
 

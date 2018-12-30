@@ -22,21 +22,33 @@ searchWidget additionalTools =
                     ^{w}
     |]
 
-booksView :: Handler [Audiobook] -> Handler Html
-booksView getBooks = getBooks >>= \books ->
-    defaultLayout [whamlet|
-        <div .container>
+audiobookContainerWidget :: [Audiobook] -> Widget
+audiobookContainerWidget books =
+    [whamlet|
+        $forall Audiobook{abId=abId} <- books
+            <div .audiobook .col-md-2>
+                <div .img-wrapper>
+                    <img src=@{BookCoverR abId} data-modal-url=@{BookOverlayR abId}>
+    |]
+
+getBookViewR :: Handler Html
+getBookViewR = do
+    runSQL Database.listBooks >>= \books ->
+        defaultLayout [whamlet|
             ^{searchWidget Nothing}
             <div .row #audiobook-container>
-                $forall Audiobook{abId=abId} <- books
-                    <div .audiobook .col-md-2>
-                        <div .img-wrapper>
-                            <img src=@{BookCoverR abId} data-modal-url=@{BookOverlayR abId}>
+                ^{audiobookContainerWidget books}
     |]
 
 
-getBookViewR :: Handler Html
-getBookViewR = booksView (runSQL Database.listBooks)
+postBookViewR :: Handler Html
+postBookViewR = do
+    query <- lookupPostParam "query"
+    books <- runSQL (Database.listBooksQuery query)
+    pc <- widgetToPageContent $ audiobookContainerWidget books
+    withUrlRenderer [hamlet|
+        ^{pageBody pc}
+    |]
 
 getHomeR :: Handler Html
 getHomeR = redirect BookViewR

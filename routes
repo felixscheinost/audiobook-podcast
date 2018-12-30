@@ -4,7 +4,7 @@
 
 /static         StaticR     EmbeddedStatic      appStatic
 
-/                             BookViewR             GET
+/                             BookViewR             GET POST
 
 /reload                       ReloadLibraryR        GET
 

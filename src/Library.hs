@@ -3,8 +3,7 @@
 module Library (
     getAudiobookCover,
     isAudioFile,
-    audiobookFromFilePath,
-    insertAudiobook
+    audiobookFromFilePath
 ) where
 
 import           Control.Applicative    (many, (<|>))
@@ -35,19 +34,6 @@ isAudioFile :: ReadSettings m => m (FilePath -> Bool)
 isAudioFile = do
     audioExtensions <- fmap (('.' :) . T.unpack) . appAudioExtensions <$> asksSettings
     return $ \filePath -> takeExtension filePath `elem` audioExtensions
-
-insertAudiobook :: Audiobook -> Connection -> IO ()
-insertAudiobook ab conn = runBeamSqliteDebug print conn  $ runInsert $
-    insert (dbAudiobooks db) $
-        insertExpressions [
-            Audiobook
-                default_
-                (val_ $ abPath ab)
-                (val_ $ abTitle ab)
-                (val_ $ abAuthor ab)
-                (val_ $ abSeries ab)
-                (val_ $ abSeriesIndex ab)
-            ]
 
 -- ======================
 --  Parse Info from Path
