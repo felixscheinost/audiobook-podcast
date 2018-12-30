@@ -101,7 +101,7 @@ getBookCoverR :: Int -> Handler TypedContent
 getBookCoverR _id = getAudiobook _id >>= (sendFileMime . Library.getAudiobookCover)
 
 getBookFileR :: Int -> Handler TypedContent
-getBookFileR _id = getAudiobook _id >>= (sendFileMime . Library.getAudiobookCover)
+getBookFileR _id = getAudiobook _id >>= (sendFileMime . T.unpack . abPath)
 
 getBookOverlayR :: Int -> Handler Html
 getBookOverlayR _id = do
@@ -116,8 +116,8 @@ getBookOverlayR _id = do
                 <img src=@{BookCoverR _id}>
                 <div>
                     <div .row>
-                        <a .btn.btn-primary href=@{BookRssR _id}> _{MsgCopyRSSLink}
-                        <a .btn.btn-primary href=@{BookFileR _id}> _{MsgDownloadMP3}
+                        <a .btn.btn-primary target="_blank" href=@{BookRssR _id}> _{MsgCopyRSSLink}
+                        <a .btn.btn-primary target="_blank" href=@{BookFileR _id}> _{MsgDownloadMP3}
     |]
     withUrlRenderer [hamlet|
         ^{pageBody pc}
