@@ -3,7 +3,7 @@ module Import.NoFoundation
     ( module Import
     ) where
 
-import           ClassyPrelude.Yesod   as Import
+import           ClassyPrelude.Yesod   as Import hiding (insert)
 import           Control.Monad.Logger  as Import
 import           Settings              as Import
 import           Settings.StaticFiles  as Import

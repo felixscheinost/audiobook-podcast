@@ -109,7 +109,7 @@ getBookOverlayR _id = do
     pc <- widgetToPageContent [whamlet|
         <div .modal-content>
             <div .modal-header>
-                <h5 .modal-title> #{abTitle} (#{_id})
+                <h5 .modal-title> #{abTitle}
                 <button .close type="button" data-dismiss="modal" aria-lAudiobookel="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>

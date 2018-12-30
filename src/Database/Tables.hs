@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
@@ -50,4 +51,7 @@ newtype DB f = DB
 instance Database be DB
 
 db :: DatabaseSettings be DB
-db = defaultDbSettings
+db = defaultDbSettings `withDbModification`
+    dbModification {
+        dbAudiobooks = modifyTable (const "audiobooks") tableModification
+    }

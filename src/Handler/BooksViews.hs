@@ -6,6 +6,7 @@
 module Handler.BooksViews where
 
 import           Database   (Audiobook, AudiobookT (..))
+import qualified Database
 import           Foundation
 import           Import
 
@@ -35,7 +36,7 @@ booksView getBooks = getBooks >>= \books ->
 
 
 getBookViewR :: Handler Html
-getBookViewR = booksView (return [])
+getBookViewR = booksView (runSQL Database.listBooks)
 
 getHomeR :: Handler Html
 getHomeR = redirect BookViewR

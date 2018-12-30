@@ -45,7 +45,17 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     let appStatic = myStatic
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
-    appDbConnection <- Sql.open ":memory:" >>= newMVar
+    conn <- Sql.open ":memory:"
+    -- TODO: Switch to beam-migrate
+    Sql.execute_ conn "CREATE TABLE audiobooks ( \
+        \   id INTEGER PRIMARY KEY, \
+        \   path TEXT, \
+        \   title TEXT, \
+        \   author TEXT, \
+        \   series TEXT, \
+        \   series_index INTEGER \
+        \ )"
+    appDbConnection <- newMVar conn
     return $ App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and

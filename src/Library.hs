@@ -3,22 +3,26 @@
 module Library (
     getAudiobookCover,
     isAudioFile,
-    audiobookFromFilePath
+    audiobookFromFilePath,
+    insertAudiobook
 ) where
 
-import           Control.Applicative  (many, (<|>))
+import           Control.Applicative    (many, (<|>))
 import           Data.Attoparsec.Text
-import           Data.Text            (Text)
-import qualified Data.Text            as T
-import           Database.Tables      (Audiobook, AudiobookT (..), abPath)
+import           Data.Text              (Text)
+import qualified Data.Text              as T
+import           Database.Beam
+import           Database.Beam.Sqlite
+import           Database.SQLite.Simple (Connection)
+import           Database.Tables
 import           Import.NoFoundation
-import           Settings             (AppSettings (appAudioExtensions),
-                                       ReadSettings, asksSettings,
-                                       runSettingsReader)
-import           System.FilePath      (extSeparator, makeRelative,
-                                       pathSeparator, takeBaseName,
-                                       takeDirectory, takeExtension, (<.>),
-                                       (</>))
+import           Settings               (AppSettings (appAudioExtensions),
+                                         ReadSettings, asksSettings,
+                                         runSettingsReader)
+import           System.FilePath        (extSeparator, makeRelative,
+                                         pathSeparator, takeBaseName,
+                                         takeDirectory, takeExtension, (<.>),
+                                         (</>))
 
 
 getAudiobookCover :: Audiobook -> FilePath
@@ -31,6 +35,23 @@ isAudioFile :: ReadSettings m => m (FilePath -> Bool)
 isAudioFile = do
     audioExtensions <- fmap (('.' :) . T.unpack) . appAudioExtensions <$> asksSettings
     return $ \filePath -> takeExtension filePath `elem` audioExtensions
+
+insertAudiobook :: Audiobook -> Connection -> IO ()
+insertAudiobook ab conn = runBeamSqliteDebug print conn  $ runInsert $
+    insert (dbAudiobooks db) $
+        insertExpressions [
+            Audiobook
+                default_
+                (val_ $ abPath ab)
+                (val_ $ abTitle ab)
+                (val_ $ abAuthor ab)
+                (val_ $ abSeries ab)
+                (val_ $ abSeriesIndex ab)
+            ]
+
+-- ======================
+--  Parse Info from Path
+-- ======================
 
 folder :: Parser Text
 folder = do
@@ -72,7 +93,6 @@ parseAT author = do
                        , abSeriesIndex=Nothing
                        }
 
-
 parseAudiobook :: ReaderT AppSettings Parser Audiobook
 parseAudiobook = do
     author <- lift folder
@@ -86,5 +106,5 @@ audiobookFromFilePath filePath = do
     let abOrError = parseOnly (parser <* endOfInput) relativeFilePath
     case abOrError of
         Right ab -> return $ Right ab{abPath=T.pack filePath}
-        Left err -> return $ Left err
+        Left err -> return $ Left $ "Error parsing " ++ T.unpack relativeFilePath ++ ": " ++ err
 
