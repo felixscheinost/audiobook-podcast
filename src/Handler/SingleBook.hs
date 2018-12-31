@@ -23,9 +23,9 @@ import           Yesod.RssFeed
 rangeNotSatisfiAudiobookle :: Handler a
 rangeNotSatisfiAudiobookle = sendResponseStatus status416 ("" :: Text)
 
-getAudiobook :: Int -> Handler Audiobook
-getAudiobook _id = do
-    maybeBook <- runSQL (DB.getAudiobook _id)
+getAudiobook :: Text -> Text -> Handler Audiobook
+getAudiobook _author _title = do
+    maybeBook <- runSQL (DB.getAudiobook _author _title)
     case maybeBook of
         Just book -> return book
         _         -> notFound
@@ -97,27 +97,27 @@ sendFileMimeConduit fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
     sendFileConduit mime fp
 
-getBookCoverR :: Int -> Handler TypedContent
-getBookCoverR _id = getAudiobook _id >>= (sendFileMime . Library.getAudiobookCover)
+getBookCoverR :: Text -> Text -> Handler TypedContent
+getBookCoverR _author _title = getAudiobook _author _title >>= (sendFileMime . Library.getAudiobookCover)
 
-getBookFileR :: Int -> Handler TypedContent
-getBookFileR _id = getAudiobook _id >>= (sendFileMime . T.unpack . abPath)
+getBookFileR :: Text -> Text -> Handler TypedContent
+getBookFileR _author _title = getAudiobook _author _title >>= (sendFileMime . T.unpack . abPath)
 
-getBookOverlayR :: Int -> Handler Html
-getBookOverlayR _id = do
-    Audiobook{abTitle=abTitle} <- getAudiobook _id
+getBookOverlayR :: Text -> Text -> Handler Html
+getBookOverlayR _author _title = do
+    Audiobook{abTitle=abTitle} <- getAudiobook _author _title
     pc <- widgetToPageContent [whamlet|
         <div .modal-content>
             <div .modal-header>
                 <h5 .modal-title> #{abTitle}
-                <button .close type="button" data-dismiss="modal" aria-lAudiobookel="Close">
+                <button .close type="button" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;
             <div .modal-body .book-modal>
-                <img src=@{BookCoverR _id}>
+                <img src=@{BookCoverR _author _title}>
                 <div>
                     <div .row>
-                        <a .btn.btn-primary target="_blank" href=@{BookRssR _id}> _{MsgCopyRSSLink}
-                        <a .btn.btn-primary target="_blank" href=@{BookFileR _id}> _{MsgDownloadMP3}
+                        <a .btn.btn-primary target="_blank" href=@{BookRssR _author _title}> _{MsgCopyRSSLink}
+                        <a .btn.btn-primary target="_blank" href=@{BookFileR _author _title}> _{MsgDownloadMP3}
     |]
     withUrlRenderer [hamlet|
         ^{pageBody pc}
@@ -126,21 +126,21 @@ getBookOverlayR _id = do
 bookFeed :: UTCTime -> Audiobook -> Feed (Route App)
 bookFeed now Audiobook{..} = Feed
     { feedTitle = abTitle
-    , feedLinkSelf = BookRssR abId
+    , feedLinkSelf = BookRssR abAuthor abTitle
     , feedLinkHome = BookViewR
     , feedAuthor = ""
     , feedDescription = ""
     , feedLanguage = "en"
     , feedUpdated = now
-    , feedLogo = Just (BookCoverR abId, abTitle)
+    , feedLogo = Just (BookCoverR abAuthor abTitle, abTitle)
     , feedEntries = [
         FeedEntry
-        { feedEntryLink = BookRssR abId
+        { feedEntryLink = BookRssR abAuthor abTitle
         , feedEntryUpdated = now
         , feedEntryTitle = abTitle
         , feedEntryContent = ""
         , feedEntryEnclosure = Just $ EntryEnclosure
-            { enclosedUrl = BookFileR abId
+            { enclosedUrl = BookFileR abAuthor abTitle
             , enclosedSize = 0
             , enclosedMimeType = "audio/mpeg"
             }
@@ -148,8 +148,8 @@ bookFeed now Audiobook{..} = Feed
     ]
     }
 
-getBookRssR :: Int -> Handler RepRss
-getBookRssR _id = do
-    b <- getAudiobook _id
+getBookRssR :: Text -> Text -> Handler RepRss
+getBookRssR _author _title = do
+    b <- getAudiobook _author _title
     now <- liftIO getCurrentTime
     rssFeed $ bookFeed now b

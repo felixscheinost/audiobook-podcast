@@ -49,12 +49,13 @@ makeFoundation appSettings = do
     -- TODO: Switch to beam-migrate
     Sql.execute_ conn "CREATE TABLE audiobooks ( \
         \   id INTEGER PRIMARY KEY, \
-        \   path TEXT, \
-        \   title TEXT, \
-        \   author TEXT, \
+        \   path TEXT NOT NULL, \
+        \   title TEXT NOT NULL, \
+        \   author TEXT NOT NULL, \
         \   series TEXT, \
         \   series_index INTEGER \
-        \ )"
+        \ ); \
+        \ CREATE UNIQUE INDEX author-title-idx ON audiobooks (author, title)"
     appDbConnection <- newMVar conn
     return $ App {..}
 

@@ -25,10 +25,10 @@ searchWidget additionalTools =
 audiobookContainerWidget :: [Audiobook] -> Widget
 audiobookContainerWidget books =
     [whamlet|
-        $forall Audiobook{abId=abId} <- books
+        $forall Audiobook{abAuthor=abAuthor, abTitle=abTitle} <- books
             <div .audiobook .col-md-2>
                 <div .img-wrapper>
-                    <img src=@{BookCoverR abId} data-modal-url=@{BookOverlayR abId}>
+                    <img src=@{BookCoverR abAuthor abTitle} data-modal-url=@{BookOverlayR abAuthor abTitle}>
     |]
 
 getBookViewR :: Handler Html

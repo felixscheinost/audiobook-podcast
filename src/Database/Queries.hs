@@ -26,10 +26,11 @@ import           Database.Beam.Sqlite
 import           Database.SQLite.Simple          (Connection)
 import           Database.Tables
 
-getAudiobook :: Int -> Connection -> IO (Maybe Audiobook)
-getAudiobook _bookId conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
+getAudiobook :: Text -> Text -> Connection -> IO (Maybe Audiobook)
+getAudiobook _author _title conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
     b <- all_ (dbAudiobooks db)
-    guard_ (abId b ==. val_ _bookId)
+    guard_ (abTitle b ==. val_ _title)
+    guard_ (abAuthor b ==. val_ _author)
     return b
 
 listBooks :: Connection -> IO [Audiobook]

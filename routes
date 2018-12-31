@@ -8,8 +8,8 @@
 
 /reload                       ReloadLibraryR        GET
 
-/book/#Int/cover              BookCoverR            GET
-/book/#Int/overlay            BookOverlayR          GET
+/book/#Text/#Text/cover              BookCoverR            GET
+/book/#Text/#Text/overlay            BookOverlayR          GET
 
-/book/#Int/mp3                BookFileR             GET
-/book/#Int/rss                BookRssR              GET
+/book/#Text/#Text/mp3                BookFileR             GET
+/book/#Text/#Text/rss                BookRssR              GET
