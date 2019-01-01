@@ -7,12 +7,10 @@ module Handler.Library (
     getReloadLibraryR
 ) where
 
-import qualified Data.ByteString.Builder  as BSB
 import qualified Data.Conduit             as CDT
 import qualified Data.Conduit.Combinators as CDT
 import qualified Data.Conduit.List        as CDTL
 import qualified Data.Text                as T
-import qualified Data.Text.Encoding       as E
 import           Database                 (Audiobook, AudiobookT (..))
 import qualified Database
 import           Foundation
@@ -21,15 +19,13 @@ import qualified Library
 import qualified System.Directory         as Dir
 import           System.FilePath          ((</>))
 
-p :: Audiobook -> Text
-p = abTitle
-
-getReloadLibraryR :: Handler TypedContent
+getReloadLibraryR :: Handler String
 getReloadLibraryR = do
     libraryFolder <- appLibraryFolder <$> asksSettings
     predicate <- Library.isAudioFile
     runSQL Database.deleteAllAudiobooks
-    let cdt = CDT.sourceDirectoryDeep True libraryFolder
+    liftIO (Dir.listDirectory libraryFolder >>= print)
+    let conduit = CDT.sourceDirectoryDeep True libraryFolder
             .| CDT.filter predicate
             .| CDT.mapM Library.audiobookFromFilePath
             .| CDTL.mapMaybeM (\case
@@ -37,6 +33,6 @@ getReloadLibraryR = do
                     Right ab -> return (Just ab)
                 )
             .| CDT.iterM (runSQL . Database.insertAudiobook)
-    respondSource "text/plain" $
-        CDT.mapOutput (Chunk . (<> BSB.char8 '\n') . BSB.byteString . E.encodeUtf8 . p) cdt
-
+            .| CDT.length
+    sum <- runConduit conduit
+    return $ "Imported " ++ show (sum :: Int) ++ " audiobooks"
