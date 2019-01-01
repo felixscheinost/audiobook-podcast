@@ -7,7 +7,8 @@ module Library (
     getAudiobookCover,
     isAudioFile,
     audiobookFromFilePath,
-    reloadLibrary
+    reloadLibrary,
+    MonadApplication
 ) where
 
 import           Control.Applicative      ((<|>))
@@ -16,8 +17,8 @@ import qualified Data.Conduit.Combinators as CDT
 import qualified Data.Conduit.List        as CDTL
 import           Data.Text                (Text)
 import qualified Data.Text                as T
-import           Database                 (Audiobook, AudiobookT (..), RunSQL,
-                                           runSQL)
+import           Database                 (AppDbConnection, Audiobook,
+                                           AudiobookT (..), RunSQL, runSQL)
 import qualified Database
 import           Database.Beam
 import           Import.NoFoundation
@@ -28,9 +29,8 @@ import           System.FilePath          (extSeparator, makeRelative,
                                            pathSeparator, takeBaseName,
                                            takeDirectory, takeExtension, (<.>))
 
+-- TODO: Need to move this someplace else if I start using it outside of this file
 type MonadApplication m = (MonadIO m, ReadSettings m, RunSQL m, MonadLogger m, MonadResource m)
-
-
 
 getAudiobookCover :: Audiobook -> FilePath
 getAudiobookCover ab = dir </> base <.> "jpg"

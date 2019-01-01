@@ -9,6 +9,7 @@ module Database (
     RunSQL(..),
     runSQL,
     insertAudiobook,
+    AppDbConnection,
     module Database.Tables,
     module Database.Queries,
 ) where
@@ -19,6 +20,8 @@ import           Database.Queries
 import           Database.SQLite.Simple as Sql
 import           Database.Tables
 import           Import.NoFoundation
+
+type AppDbConnection = MVar Sql.Connection
 
 insertAudiobook :: Audiobook -> Connection -> IO ()
 insertAudiobook ab conn = runBeamSqlite conn  $ runInsert $
@@ -34,7 +37,7 @@ insertAudiobook ab conn = runBeamSqlite conn  $ runInsert $
         ]
 
 class MonadIO m => RunSQL m where
-    dbConnection :: m (MVar Sql.Connection)
+    dbConnection :: m AppDbConnection
 
 -- | Tries to run the given function with the Connection from the MVar
 -- If there is no connection, tries to establish one.

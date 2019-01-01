@@ -12,6 +12,7 @@ import qualified Data.CaseInsensitive                 as CI
 import qualified Database.SQLite.Simple               as Sql
 import           Import                               hiding (requestHeaders)
 import           Language.Haskell.TH.Syntax           (qLocation)
+import qualified Library
 import           Network.Wai                          (Middleware, Request (..))
 import           Network.Wai.Handler.Warp             (Settings,
                                                        defaultSettings,
@@ -57,7 +58,9 @@ makeFoundation appSettings = do
         \ ); \
         \ CREATE UNIQUE INDEX author-title-idx ON audiobooks (author, title)"
     appDbConnection <- newMVar conn
-    return $ App {..}
+    let app = App {..}
+    _ <- runApplicationIO app Library.reloadLibrary
+    return app
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
 --   applying some additional middlewares.
