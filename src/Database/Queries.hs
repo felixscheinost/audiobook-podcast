@@ -38,7 +38,9 @@ listBooks = listBooksQuery Nothing
 
 listBooksQuery :: Maybe Text -> Connection -> IO [Audiobook]
 listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
-    b <- all_ (dbAudiobooks db)
+    b <- orderBy_
+        (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abSeriesIndex b), asc_ (abTitle b)))
+        (all_ (dbAudiobooks db))
     guard_ $
         let
             word = fromMaybe "" mQuery
