@@ -13,7 +13,6 @@ module Database (
     module Database.Queries,
 ) where
 
-import qualified Data.Text              as T
 import           Database.Beam
 import           Database.Beam.Sqlite
 import           Database.Queries
@@ -40,7 +39,7 @@ class MonadIO m => RunSQL m where
 -- | Tries to run the given function with the Connection from the MVar
 -- If there is no connection, tries to establish one.
 -- If establishing a connection fails `SqlErrorWhileConnecting` is thrown
-runSQL :: (ReadSettings m, RunSQL m) => (Sql.Connection -> IO a) -> m a
+runSQL :: RunSQL m => (Sql.Connection -> IO a) -> m a
 runSQL f = do
     mConn <- dbConnection
     liftIO $ withMVar mConn f

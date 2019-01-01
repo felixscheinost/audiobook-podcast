@@ -1,27 +1,35 @@
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Library (
     getAudiobookCover,
     isAudioFile,
-    audiobookFromFilePath
+    audiobookFromFilePath,
+    reloadLibrary
 ) where
 
-import           Control.Applicative    (many, (<|>))
+import           Control.Applicative      ((<|>))
 import           Data.Attoparsec.Text
-import           Data.Text              (Text)
-import qualified Data.Text              as T
+import qualified Data.Conduit.Combinators as CDT
+import qualified Data.Conduit.List        as CDTL
+import           Data.Text                (Text)
+import qualified Data.Text                as T
+import           Database                 (Audiobook, AudiobookT (..), RunSQL,
+                                           runSQL)
+import qualified Database
 import           Database.Beam
-import           Database.Beam.Sqlite
-import           Database.SQLite.Simple (Connection)
-import           Database.Tables
 import           Import.NoFoundation
-import           Settings               (AppSettings (appAudioExtensions),
-                                         ReadSettings, asksSettings,
-                                         runSettingsReader)
-import           System.FilePath        (extSeparator, makeRelative,
-                                         pathSeparator, takeBaseName,
-                                         takeDirectory, takeExtension, (<.>),
-                                         (</>))
+import           Settings                 (AppSettings (appAudioExtensions),
+                                           ReadSettings, asksSettings,
+                                           runSettingsReader)
+import           System.FilePath          (extSeparator, makeRelative,
+                                           pathSeparator, takeBaseName,
+                                           takeDirectory, takeExtension, (<.>))
+
+type MonadApplication m = (MonadIO m, ReadSettings m, RunSQL m, MonadLogger m, MonadResource m)
+
 
 
 getAudiobookCover :: Audiobook -> FilePath
@@ -34,6 +42,22 @@ isAudioFile :: ReadSettings m => m (FilePath -> Bool)
 isAudioFile = do
     audioExtensions <- fmap (('.' :) . T.unpack) . appAudioExtensions <$> asksSettings
     return $ \filePath -> takeExtension filePath `elem` audioExtensions
+
+reloadLibrary :: MonadApplication m => m Int
+reloadLibrary = do
+    libraryFolder <- appLibraryFolder <$> asksSettings
+    predicate <- Library.isAudioFile
+    runSQL Database.deleteAllAudiobooks
+    let conduit = CDT.sourceDirectoryDeep True libraryFolder
+            .| CDT.filter predicate
+            .| CDT.mapM Library.audiobookFromFilePath
+            .| CDTL.mapMaybeM (\case
+                    Left err -> logErrorN (T.pack err) >> return Nothing
+                    Right ab -> return (Just ab)
+                )
+            .| CDT.iterM (runSQL . Database.insertAudiobook)
+            .| CDT.length
+    runConduit conduit
 
 -- ======================
 --  Parse Info from Path

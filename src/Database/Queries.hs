@@ -16,7 +16,6 @@ import           Control.Monad                   (forM)
 import           Data.Maybe                      (fromMaybe)
 import           Data.Proxy
 import           Data.Text                       (Text)
-import qualified Data.Text                       as T
 import           Database.Beam
 import           Database.Beam.Backend.SQL.SQL92 (IsSql92DeleteSyntax,
                                                   deleteStmt,
@@ -56,7 +55,7 @@ deleteAll :: forall be db delete table
            => DatabaseEntity be db (TableEntity table)
             -- ^ Table to delete from
            -> SqlDelete delete table
-deleteAll (DatabaseEntity (DatabaseTable tblNm tblSettings)) = SqlDelete (deleteStmt tblNm alias Nothing)
+deleteAll (DatabaseEntity (DatabaseTable tblNm _)) = SqlDelete (deleteStmt tblNm alias Nothing)
     where
         supportsAlias = deleteSupportsAlias (Proxy @delete)
         tgtName = "delete_target"
