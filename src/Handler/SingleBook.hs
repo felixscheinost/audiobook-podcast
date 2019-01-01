@@ -106,18 +106,18 @@ getBookFileR _author _title = getAudiobook _author _title >>= (sendFileMime . T.
 getBookOverlayR :: Text -> Text -> Handler Html
 getBookOverlayR _author _title = do
     Audiobook{abTitle=abTitle} <- getAudiobook _author _title
+    -- TODO: Probably don't need a widget here
     pc <- widgetToPageContent [whamlet|
-        <div .modal-content>
-            <div .modal-header>
-                <h5 .modal-title> #{abTitle}
-                <button .close type="button" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;
-            <div .modal-body .book-modal>
-                <img src=@{BookCoverR _author _title}>
-                <div>
-                    <div .row>
-                        <a .btn.btn-primary target="_blank" href=@{BookRssR _author _title}> _{MsgCopyRSSLink}
-                        <a .btn.btn-primary target="_blank" href=@{BookFileR _author _title}> _{MsgDownloadMP3}
+        <div .modal-header>
+            <h5 .modal-title> #{abTitle}
+            <button .close type="button" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;
+        <div .modal-body .book-modal>
+            <div .input-group>
+                <input type="text" .form-control readonly="" value=@{BookRssR _author _title} #copy-rss-input>
+                <div .input-group-append>
+                    <button .btn.btn-secondary type="button" #copy-rss-button data-clipboard-target="#copy-rss-input">
+                        _{MsgCopyRSSLink}
     |]
     withUrlRenderer [hamlet|
         ^{pageBody pc}

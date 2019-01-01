@@ -5,6 +5,11 @@ $(document).ready(function () {
     $(document).on("click", "#audiobook-container:not(.selectable) .audiobook img[data-modal-url]", function () {
         $('#ajax-modal .modal-content').load($(this).attr("data-modal-url"), function () {
             $('#ajax-modal').modal({ show: true });
+
+            /**
+             * Copy value from text input that contains RSS on button press
+             */
+            new ClipboardJS('#copy-rss-button');
         });
     });
 
@@ -23,4 +28,4 @@ $(document).ready(function () {
             $('#audiobook-container').load(window.location.href, data);
         }, 300);
     });
-})
+});

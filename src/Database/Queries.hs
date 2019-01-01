@@ -61,4 +61,4 @@ deleteAll (DatabaseEntity (DatabaseTable tblNm tblSettings)) = SqlDelete (delete
         alias = if supportsAlias then Just tgtName else Nothing
 
 deleteAllAudiobooks :: Connection -> IO ()
-deleteAllAudiobooks conn = runBeamSqliteDebug print conn $ runDelete $ deleteAll (dbAudiobooks db)
+deleteAllAudiobooks conn = runBeamSqlite conn $ runDelete $ deleteAll (dbAudiobooks db)

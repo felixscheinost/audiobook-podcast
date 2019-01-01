@@ -1,5 +1,5 @@
 Search: Suchen
 Cancel: Abbrechen
 
-CopyRSSLink: Podcast-Link kopieren
+CopyRSSLink: Podcast-URL kopieren
 DownloadMP3: MP3 herunterladen

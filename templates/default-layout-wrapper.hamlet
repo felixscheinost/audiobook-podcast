@@ -14,7 +14,6 @@
     ^{pageHead pc}
     <link href="@{StaticR css_fontawesome_all_min_css}" rel="stylesheet">
     <link href="@{StaticR css_bootstrap_litera_min_css}" rel="stylesheet">
-    <link href="@{StaticR css_bootstrap_fs_modal_min_css}" rel="stylesheet">
     <link href="@{StaticR css_app_css}" rel="stylesheet">
   <body>
       ^{pageBody pc}
@@ -24,4 +23,5 @@
             <div .modal-content>
       <script src="@{StaticR js_jquery_min_js}">
       <script src="@{StaticR js_bootstrap_bundle_min_js}">
+      <script src="@{StaticR js_clipboard_min_js}">
       <script src="@{StaticR js_app_js}">
