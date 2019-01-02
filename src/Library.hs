@@ -46,10 +46,10 @@ isAudioFile = do
 reloadLibrary :: MonadApplication m => m Int
 reloadLibrary = do
     libraryFolder <- appLibraryFolder <$> asksSettings
-    predicate <- Library.isAudioFile
+    isAudio <- Library.isAudioFile
     runSQL Database.deleteAllAudiobooks
     let conduit = CDT.sourceDirectoryDeep True libraryFolder
-            .| CDT.filter predicate
+            .| CDT.filter isAudio
             .| CDT.mapM Library.audiobookFromFilePath
             .| CDTL.mapMaybeM (\case
                     Left err -> logErrorN (T.pack err) >> return Nothing

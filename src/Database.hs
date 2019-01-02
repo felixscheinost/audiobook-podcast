@@ -1,8 +1,5 @@
 
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Database (

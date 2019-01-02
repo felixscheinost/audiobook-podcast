@@ -1,7 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RecordWildCards   #-}
 
 module Handler.BooksViews where
 
@@ -32,7 +31,7 @@ audiobookContainerWidget books =
     |]
 
 getBookViewR :: Handler Html
-getBookViewR = do
+getBookViewR =
     runSQL Database.listBooks >>= \books ->
         defaultLayout [whamlet|
             ^{searchWidget Nothing}
