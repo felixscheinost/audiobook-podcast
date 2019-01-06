@@ -14,11 +14,12 @@ module Database.Queries (
     BookOrSeries
 ) where
 
--- import           Control.Monad                   (forM)
+import           Control.Monad                   (forM_)
 import           Data.Maybe                      (fromMaybe)
 import           Data.NonNull                    (NonNull (..))
 import           Data.Proxy
 import           Data.Text                       (Text)
+import qualified Data.Text                       as T
 import           Database.Beam
 import           Database.Beam.Backend.SQL.SQL92 (IsSql92DeleteSyntax,
                                                   deleteStmt,
@@ -52,12 +53,8 @@ listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ selec
     b <- orderBy_
         (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abSeriesIndex b), asc_ (abTitle b)))
         (all_ (dbAudiobooks db))
-    guard_ $
-        let
-            word = fromMaybe "" mQuery
-        -- foldl (&&.) $ forM (maybe [] T.words mQuery) $ \word ->
-        in
-            (abTitle b `like_` val_ ("%" <> word <> "%"))
+    forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
+        guard_ $ (abTitle b `like_` val_ ("%" <> word <> "%"))
                 ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
                 ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
     return b
