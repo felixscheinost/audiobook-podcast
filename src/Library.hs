@@ -84,7 +84,7 @@ parseATS author = do
     series <- lift folder
     lift $ skipMany space
     seriesIndex <- lift decimal
-    lift (skipMany space)
+    lift (skipWhile ((||) <$> (== ' ') <*> (== '-')))
     title <- lift upToExtension
     extension
     return $ Audiobook { abAuthor=author
