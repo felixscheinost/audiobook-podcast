@@ -73,13 +73,7 @@ makeApplication foundation = do
         defaultMiddlewaresNoLogging appPlain
 
 makeLogWare :: App -> IO Middleware
-makeLogWare foundation =
-    if appDevelopment $ appSettings foundation then
-        mkRequestLogger $ def {
-            outputFormat =  CustomOutputFormat logWareFormat
-        }
-    else
-        mkRequestLogger def { outputFormat = Apache FromSocket }
+makeLogWare foundation = mkRequestLogger def { outputFormat = Apache FromSocket }
 
 logWareFormat :: OutputFormatter
 logWareFormat _ req status _ =
