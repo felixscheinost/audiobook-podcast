@@ -6,14 +6,17 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Database.Queries (
-    getAudiobook,
+    getAudiobookByAuthorTitle,
+    getAudiobookById,
     listBooks,
     listBooksQuery,
-    deleteAllAudiobooks
+    deleteAllAudiobooks,
+    BookOrSeries
 ) where
 
-import           Control.Monad                   (forM)
+-- import           Control.Monad                   (forM)
 import           Data.Maybe                      (fromMaybe)
+import           Data.NonNull                    (NonNull (..))
 import           Data.Proxy
 import           Data.Text                       (Text)
 import           Database.Beam
@@ -25,11 +28,20 @@ import           Database.Beam.Sqlite
 import           Database.SQLite.Simple          (Connection)
 import           Database.Tables
 
-getAudiobook :: Text -> Text -> Connection -> IO (Maybe Audiobook)
-getAudiobook _author _title conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
+data BookOrSeries = Book Int | Series (NonNull [Int])
+
+getAudiobookByAuthorTitle :: Text -> Text -> Connection -> IO (Maybe Audiobook)
+getAudiobookByAuthorTitle _author _title conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
     b <- all_ (dbAudiobooks db)
     guard_ (abTitle b ==. val_ _title)
     guard_ (abAuthor b ==. val_ _author)
+    return b
+
+
+getAudiobookById :: Int -> Connection -> IO (Maybe Audiobook)
+getAudiobookById _id conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
+    b <- all_ (dbAudiobooks db)
+    guard_ (abId b ==. val_ _id)
     return b
 
 listBooks :: Connection -> IO [Audiobook]

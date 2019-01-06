@@ -5,16 +5,18 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module Foundation where
 
-import           Database            (AppDbConnection, RunSQL (..))
+import           Database               (AppDbConnection, RunSQL (..), runSQL)
+import qualified Database.SQLite.Simple as Sql
 import           Import.NoFoundation
-import           Library             (MonadApplication)
-import           Text.Hamlet         (hamletFile)
+import           Library                (MonadApplication)
+import           Text.Hamlet            (hamletFile)
 
 data App = App
     { appSettings     :: AppSettings
@@ -36,6 +38,9 @@ instance Yesod App where
 
 instance RunSQL (HandlerFor App) where
     dbConnection = appDbConnection <$> getYesod
+
+runSQLGetOr404 :: (Sql.Connection -> IO (Maybe a)) -> Handler a
+runSQLGetOr404 = (>>= maybe notFound return) . runSQL
 
 instance ReadSettings (HandlerFor App) where
     asksSettings = appSettings <$> getYesod

@@ -45,11 +45,13 @@ dependencies:
 - safe-exceptions
 - process-extras
 - attoparsec
+- mono-traversable
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
+  default-extensions: NamedFieldPuns
   when:
   - condition: (flag(dev)) || (flag(library-only))
     then:

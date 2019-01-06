@@ -27,7 +27,7 @@ audiobookContainerWidget books =
         $forall Audiobook{abAuthor=abAuthor, abTitle=abTitle} <- books
             <div .audiobook .col-md-3 .col-lg-2 .col-xl-2 .col-sm-3 .col-4>
                 <div .img-wrapper>
-                    <img src=@{BookCoverR abAuthor abTitle} data-modal-url=@{BookOverlayR abAuthor abTitle}>
+                    <img src=@{BookCoverByAuthorTitleR abAuthor abTitle} data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
     |]
 
 getBookViewR :: Handler Html

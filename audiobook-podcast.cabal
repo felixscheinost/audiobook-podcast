@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b5447dea45cc34069109cc40178d2f0978232aeffa07943b6c9550b3458045b0
+-- hash: bbf01fa8aa5feb50d0281b60833a2b965f8041263349d04c43690542e43e983d
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -30,6 +30,7 @@ library
       Foundation
       Handler.BooksViews
       Handler.Library
+      Handler.SendFile
       Handler.SingleBook
       Import
       Import.NoFoundation
@@ -40,6 +41,7 @@ library
       Paths_audiobook_podcast
   hs-source-dirs:
       src
+  default-extensions: NamedFieldPuns
   build-depends:
       aeson
     , async
@@ -61,6 +63,7 @@ library
     , http-types
     , mime-types
     , monad-logger
+    , mono-traversable
     , mtl
     , natural-sort
     , process
@@ -120,6 +123,7 @@ executable audiobook-podcast
     , http-types
     , mime-types
     , monad-logger
+    , mono-traversable
     , mtl
     , natural-sort
     , process

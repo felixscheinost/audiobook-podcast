@@ -48,7 +48,7 @@ makeFoundation appSettings = do
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     conn <- Sql.open ":memory:"
     -- TODO: Switch to beam-migrate
-    Sql.execute_ conn "CREATE TABLE audiobooks ( \
+    Sql.execute_ conn "CREATE TABLE IF NOT EXISTS audiobooks ( \
         \   id INTEGER PRIMARY KEY, \
         \   path TEXT NOT NULL, \
         \   title TEXT NOT NULL, \
