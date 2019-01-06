@@ -51,7 +51,7 @@ dependencies:
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
-  default-extensions: NamedFieldPuns
+  default-extensions: NamedFieldPuns, OverloadedStrings
   when:
   - condition: (flag(dev)) || (flag(library-only))
     then:

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bbf01fa8aa5feb50d0281b60833a2b965f8041263349d04c43690542e43e983d
+-- hash: b261897309ff335eedba26344a94091566ca1e0d366b8d219c286a863670ce65
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -41,7 +41,7 @@ library
       Paths_audiobook_podcast
   hs-source-dirs:
       src
-  default-extensions: NamedFieldPuns
+  default-extensions: NamedFieldPuns, OverloadedStrings
   build-depends:
       aeson
     , async

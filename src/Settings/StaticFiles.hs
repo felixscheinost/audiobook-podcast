@@ -1,13 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE CPP               #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module Settings.StaticFiles where
 
 --import Yesod.Static (staticFiles)
-import Yesod.EmbeddedStatic (mkEmbeddedStatic)
-import Yesod.EmbeddedStatic.Generators (embedDir)
-import Prelude (Bool(..))
+import           Prelude                         (Bool (..))
+import           Yesod.EmbeddedStatic            (mkEmbeddedStatic)
+import           Yesod.EmbeddedStatic.Generators (embedDir)
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
