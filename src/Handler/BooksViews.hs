@@ -3,7 +3,8 @@
 
 module Handler.BooksViews where
 
-import           Database         (Audiobook, AudiobookT (..))
+import           Database         (AbAuthor, AbSeries, AbTitle, Audiobook,
+                                   AudiobookT (..))
 import qualified Database
 import           Foundation
 import           Import
@@ -22,27 +23,24 @@ searchWidget additionalTools =
                     ^{w}
     |]
 
-singleBook :: Audiobook -> Widget
-singleBook book@Audiobook{abAuthor=abAuthor, abTitle=abTitle} = do
-    coverExists <- liftIO $ Directory.doesFileExist $ Library.getAudiobookCover book
+imageUrl :: AbAuthor -> Maybe AbSeries -> Maybe AbTitle -> Route App
+imageUrl abAuthor (Just abSeries) Nothing = SeriesCoverR abAuthor abSeries
+imageUrl abAuthor Nothing (Just abTitle)  = BookCoverR abAuthor abTitle
+
+modalUrl :: AbAuthor -> Maybe AbSeries -> Maybe AbTitle -> Route App
+modalUrl abAuthor (Just abSeries) Nothing = SeriesOverlayR abAuthor abSeries
+modalUrl abAuthor Nothing (Just abTitle)  = BookOverlayR abAuthor abTitle
+
+singleBook :: (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
+singleBook (author, series, title) =
     [whamlet|
         <div .audiobook .col-md-3 .col-lg-2 .col-xl-2 .col-sm-3 .col-4>
-            $if coverExists
                 <div .img-wrapper>
-                    <img src=@{BookCoverByAuthorTitleR abAuthor abTitle}
-                        data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
-            $else
-                <div .img-wrapper>
-                    <img src=@{StaticR img_cover_placeholder_svg}
-                        data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
-                    <span .placeholder-title>
-                        #{abTitle}
-                        <br>
-                        <small>#{abAuthor}
+                    <img src=@{imageUrl author series title}
+                         data-modal-url=@{modalUrl author series title}>
     |]
 
-
-audiobookContainerWidget :: [Audiobook] -> Widget
+audiobookContainerWidget :: [(AbAuthor, Maybe AbSeries, Maybe AbTitle)] -> Widget
 audiobookContainerWidget books =
     [whamlet|
         $forall book <- books
@@ -51,7 +49,7 @@ audiobookContainerWidget books =
 
 getBookViewR :: Handler Html
 getBookViewR =
-    runSQL Database.listBooks >>= \books ->
+    runSQL (Database.listBooksQuery Nothing) >>= \books ->
         defaultLayout [whamlet|
             ^{searchWidget Nothing}
             <div .row #audiobook-container>
@@ -62,8 +60,8 @@ getBookViewR =
 postBookViewR :: Handler Html
 postBookViewR = do
     query <- lookupPostParam "query"
-    books <- runSQL (Database.listBooksQuery query)
-    pc <- widgetToPageContent $ audiobookContainerWidget books
+    booksAndSeries <- runSQL (Database.listBooksQuery query)
+    pc <- widgetToPageContent $ audiobookContainerWidget booksAndSeries
     withUrlRenderer [hamlet|
         ^{pageBody pc}
     |]

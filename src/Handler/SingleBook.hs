@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE QuasiQuotes       #-}
@@ -7,7 +8,7 @@ module Handler.SingleBook where
 
 import qualified Data.Text        as T
 import           Data.Time.Clock  (getCurrentTime)
-import           Database         (AbAuthor, AbTitle (..), Audiobook,
+import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
                                    AudiobookT (..))
 import qualified Database         as DB
 import qualified Handler.SendFile as SendFile
@@ -16,20 +17,22 @@ import qualified Library
 import qualified System.Directory as Directory
 import           Yesod.RssFeed    (RepRss, rssFeed)
 
-withBookByAuthorTitle :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
-withBookByAuthorTitle f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f
+withBook :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
+withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f
 
-withBookById :: (Audiobook -> Handler a) -> Int -> Handler a
-withBookById f _id = runSQLGetOr404 (DB.getAudiobookById _id) >>= f
+withSeriesBooks :: ([Audiobook] -> Handler a) -> AbAuthor -> AbSeries -> Handler a
+withSeriesBooks f _author _series = runSQL (DB.getAudiobooksByAuthorSeries _author _series) >>= f
 
-getBookCoverByAuthorTitleR :: AbAuthor -> AbTitle -> Handler TypedContent
-getBookCoverByAuthorTitleR = withBookByAuthorTitle (SendFile.sendFileMime . Library.getAudiobookCover)
+getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
+getBookCoverR = withBook (SendFile.sendFileMime . Library.getAudiobookCover)
 
-getBookCoverByIdR :: Int -> Handler TypedContent
-getBookCoverByIdR = withBookById (SendFile.sendFileMime . Library.getAudiobookCover)
+getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
+getSeriesCoverR = withSeriesBooks $ \case
+        []     -> notFound
+        book:_ -> SendFile.sendFileMime (Library.getAudiobookCover book)
 
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
-getBookFileR = withBookByAuthorTitle (SendFile.sendFileMime . T.unpack . abPath)
+getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)
 
 bookOverlay :: Audiobook -> Handler Html
 bookOverlay Audiobook{abTitle, abAuthor} = do
@@ -50,11 +53,13 @@ bookOverlay Audiobook{abTitle, abAuthor} = do
         ^{pageBody pc}
     |]
 
-getBookOverlayByAuthorTitleR :: AbAuthor -> AbTitle -> Handler Html
-getBookOverlayByAuthorTitleR = withBookByAuthorTitle bookOverlay
+getBookOverlayR :: AbAuthor -> AbTitle -> Handler Html
+getBookOverlayR = withBook bookOverlay
 
-getBookOverlayByIdR :: Int -> Handler Html
-getBookOverlayByIdR = withBookById bookOverlay
+getSeriesOverlayR :: AbAuthor -> AbSeries -> Handler Html
+getSeriesOverlayR = withSeriesBooks $ \case
+        []     -> notFound
+        book:_ -> bookOverlay book
 
 bookFeed :: Audiobook -> IO (Feed (Route App))
 bookFeed Audiobook{abTitle=abTitle@(AbTitle title), ..} = do
@@ -68,7 +73,7 @@ bookFeed Audiobook{abTitle=abTitle@(AbTitle title), ..} = do
         , feedDescription = ""
         , feedLanguage = "en"
         , feedUpdated = now
-        , feedLogo = Just (BookCoverByAuthorTitleR abAuthor abTitle, title)
+        , feedLogo = Just (BookCoverR abAuthor abTitle, title)
         , feedEntries = [
             FeedEntry
             { feedEntryLink = BookRssR abAuthor abTitle
@@ -85,6 +90,6 @@ bookFeed Audiobook{abTitle=abTitle@(AbTitle title), ..} = do
         }
 
 getBookRssR :: AbAuthor -> AbTitle -> Handler RepRss
-getBookRssR = withBookByAuthorTitle $ \book -> do
+getBookRssR = withBook $ \book -> do
     feed <- liftIO $ bookFeed book
     rssFeed feed

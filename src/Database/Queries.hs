@@ -6,10 +6,9 @@
 
 module Database.Queries (
     getAudiobookByAuthorTitle,
+    getAudiobooksByAuthorSeries,
     getAudiobookById,
-    listBooks,
     listBooksQuery,
-    listBooksQuery2,
     deleteAllAudiobooks,
     BookOrSeries
 ) where
@@ -38,6 +37,12 @@ getAudiobookByAuthorTitle _author _title conn = runBeamSqlite conn $ runSelectRe
     guard_ (abAuthor b ==. val_ _author)
     return b
 
+getAudiobooksByAuthorSeries :: AbAuthor -> AbSeries -> Connection -> IO [Audiobook]
+getAudiobooksByAuthorSeries _author _series conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
+    b <- orderBy_ (asc_ . abSeriesIndex) (all_ (dbAudiobooks db))
+    guard_ (abSeries b ==. just_ (val_ _series))
+    guard_ (abAuthor b ==. val_ _author)
+    return b
 
 getAudiobookById :: Int -> Connection -> IO (Maybe Audiobook)
 getAudiobookById _id conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
@@ -45,22 +50,8 @@ getAudiobookById _id conn = runBeamSqlite conn $ runSelectReturningOne $ select 
     guard_ (abId b ==. val_ _id)
     return b
 
-listBooks :: Connection -> IO [Audiobook]
-listBooks = listBooksQuery Nothing
-
-listBooksQuery :: Maybe Text -> Connection -> IO [Audiobook]
-listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
-    b <- orderBy_
-        (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
-        (all_ (dbAudiobooks db))
-    forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
-        guard_ $ (abTitle b `like_` val_ (AbTitle $ "%" <> word <> "%"))
-                ||. (abAuthor b `like_` val_ (AbAuthor $ "%" <> word <> "%"))
-                ||. (fromMaybe_ (val_ $ AbSeries "") (abSeries b) `like_` val_ (AbSeries $ "%" <> word <> "%"))
-    return b
-
-listBooksQuery2 :: Maybe Text -> Connection -> IO [(AbAuthor, Maybe AbSeries, Maybe AbTitle)]
-listBooksQuery2 mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ nub_ $ do
+listBooksQuery :: Maybe Text -> Connection -> IO [(AbAuthor, Maybe AbSeries, Maybe AbTitle)]
+listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ nub_ $ do
     b <- orderBy_
         (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
         (all_ (dbAudiobooks db))
