@@ -24,7 +24,13 @@ withSeriesBooks :: ([Audiobook] -> Handler a) -> AbAuthor -> AbSeries -> Handler
 withSeriesBooks f _author _series = runSQL (DB.getAudiobooksByAuthorSeries _author _series) >>= f
 
 getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
-getBookCoverR = withBook (SendFile.sendFileMime . Library.getAudiobookCover)
+getBookCoverR = withBook $ \book -> do
+    let path = Library.getAudiobookCover book
+    exists <- liftIO $ Directory.doesFileExist path
+    if exists then
+        SendFile.sendFileMime path
+    else
+        redirect (StaticR img_cover_placeholder_svg)
 
 getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
 getSeriesCoverR = withSeriesBooks $ \case

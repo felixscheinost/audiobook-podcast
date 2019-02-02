@@ -23,21 +23,30 @@ searchWidget additionalTools =
                     ^{w}
     |]
 
-imageUrl :: AbAuthor -> Maybe AbSeries -> Maybe AbTitle -> Route App
-imageUrl abAuthor (Just abSeries) Nothing = SeriesCoverR abAuthor abSeries
-imageUrl abAuthor Nothing (Just abTitle)  = BookCoverR abAuthor abTitle
-
-modalUrl :: AbAuthor -> Maybe AbSeries -> Maybe AbTitle -> Route App
-modalUrl abAuthor (Just abSeries) Nothing = SeriesOverlayR abAuthor abSeries
-modalUrl abAuthor Nothing (Just abTitle)  = BookOverlayR abAuthor abTitle
-
 singleBook :: (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
 singleBook (author, series, title) =
     [whamlet|
-        <div .audiobook .col-md-3 .col-lg-2 .col-xl-2 .col-sm-3 .col-4>
-                <div .img-wrapper>
-                    <img src=@{imageUrl author series title}
-                         data-modal-url=@{modalUrl author series title}>
+        <div .audiobook .col-4 .col-sm-3 .col-md-3 .col-lg-2 .col-xl-2>
+            <div .audiobook-wrapper>
+                $case (series, title)
+                    $of (Just abSeries, _)
+                        <div .img-wrapper>
+                            <img src=@{SeriesCoverR author abSeries}
+                                data-modal-url=@{SeriesOverlayR author abSeries}>
+                        <div .text-wrapper>
+                            <span .text-bold> #{abSeries}
+                            <br>
+                            <span .text-small> #{author}
+                    $of (_, Just abTitle)
+                        <div .img-wrapper>
+                            <img src=@{BookCoverR author abTitle}
+                                data-modal-url=@{BookOverlayR author abTitle}>
+                        <div .text-wrapper >
+                            <span .text-bold> #{abTitle}
+                            <br>
+                            <span .text-small> #{author}
+                    $of _
+                        <br>
     |]
 
 audiobookContainerWidget :: [(AbAuthor, Maybe AbSeries, Maybe AbTitle)] -> Widget
