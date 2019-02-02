@@ -26,13 +26,13 @@ import           Text.Blaze                       (ToMarkup)
 -------------------------------------
 
 newtype AbTitle = AbTitle Text
-    deriving (Show, Eq, Read, PathPiece, ToMarkup)
+    deriving (Show, Eq, Read, PathPiece, ToMarkup, FromField)
 
 newtype AbAuthor = AbAuthor Text
-    deriving (Show, Eq, Read, PathPiece, ToMarkup)
+    deriving (Show, Eq, Read, PathPiece, ToMarkup, FromField)
 
 newtype AbSeries = AbSeries Text
-    deriving (Show, Eq, Read, PathPiece, ToMarkup)
+    deriving (Show, Eq, Read, PathPiece, ToMarkup, FromField)
 
 data AudiobookT f = Audiobook
     { abId          :: Columnar f Int
@@ -79,24 +79,18 @@ db = defaultDbSettings `withDbModification`
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbTitle where
     sqlValueSyntax (AbTitle t) = sqlValueSyntax t
-instance FromField AbTitle where
-    fromField f = AbTitle <$> fromField f
 instance FromBackendRow Sqlite AbTitle
 instance IsSqlExpressionSyntaxStringType be AbTitle
 instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbTitle
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbAuthor where
     sqlValueSyntax (AbAuthor t) = sqlValueSyntax t
-instance FromField AbAuthor where
-    fromField f = AbAuthor <$> fromField f
 instance FromBackendRow Sqlite AbAuthor
 instance IsSqlExpressionSyntaxStringType be AbAuthor
 instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbAuthor
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbSeries where
     sqlValueSyntax (AbSeries t) = sqlValueSyntax t
-instance FromField AbSeries where
-    fromField f = AbSeries <$> fromField f
 instance FromBackendRow Sqlite AbSeries
 instance IsSqlExpressionSyntaxStringType be AbSeries
 instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbSeries
