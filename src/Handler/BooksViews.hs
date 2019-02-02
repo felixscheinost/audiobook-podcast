@@ -57,8 +57,9 @@ audiobookContainerWidget books =
     |]
 
 getBookViewR :: Handler Html
-getBookViewR =
-    runSQL (Database.listBooksQuery Nothing) >>= \books ->
+getBookViewR = do
+    query <- lookupGetParam "query"
+    runSQL (Database.listBooksQuery query) >>= \books ->
         defaultLayout [whamlet|
             ^{searchWidget Nothing}
             <div .row #audiobook-container>

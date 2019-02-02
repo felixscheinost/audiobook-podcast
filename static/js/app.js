@@ -11,7 +11,7 @@ function StateProp(name, push) {
 
     function decodeStateFromUrl() {
         var state = {}
-        window.location.hash.substr(1).split("&").forEach(function (keyVal) {
+        window.location.search.substr(1).split("&").forEach(function (keyVal) {
             var split = keyVal.split("=")
             var key = split[0]
             var value = split[1]
@@ -23,22 +23,22 @@ function StateProp(name, push) {
     }
 
     function encodeStateToUrl(state) {
-        var stateForHash = ""
+        var stateForUrl = ""
         for (var key in state) {
             var value = state[key]
             if (state.hasOwnProperty(key) && value !== undefined) {
-                if (stateForHash.length > 0) {
-                    stateForHash += "&"
+                if (stateForUrl.length > 0) {
+                    stateForUrl += "&"
                 }
-                stateForHash += encodeURIComponent(key)
-                stateForHash += "="
-                stateForHash += encodeURIComponent(value)
+                stateForUrl += encodeURIComponent(key)
+                stateForUrl += "="
+                stateForUrl += encodeURIComponent(value)
             }
         }
-        var newUrl = window.location.href.split("#")[0]
-        if (stateForHash.length > 0) {
-            newUrl += "#"
-            newUrl += stateForHash
+        var newUrl = window.location.href.split("?")[0]
+        if (stateForUrl.length > 0) {
+            newUrl += "?"
+            newUrl += stateForUrl
         }
         if (newUrl !== window.location.href) {
             if (push) {
@@ -85,7 +85,7 @@ function StateProp(name, push) {
  */
 var State = {
     modalUrl: new StateProp("modalUrl", true),
-    searchQuery: new StateProp("searchQuery", true)
+    searchQuery: new StateProp("query", true)
 }
 
 /**
