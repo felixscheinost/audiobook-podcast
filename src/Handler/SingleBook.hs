@@ -26,7 +26,7 @@ getBookCoverByIdR :: Int -> Handler TypedContent
 getBookCoverByIdR = withBookById (SendFile.sendFileMime . Library.getAudiobookCover)
 
 getBookFileR :: Text -> Text -> Handler TypedContent
-getBookFileR = withBookByAuthorTitle (SendFile.sendFileMimeConduit . T.unpack . abPath)
+getBookFileR = withBookByAuthorTitle (SendFile.sendFileMime . T.unpack . abPath)
 
 bookOverlay :: Audiobook -> Handler Html
 bookOverlay Audiobook{abTitle, abAuthor} = do
