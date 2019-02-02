@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg:svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="12.936824cm"
+   height="11.016377cm"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
+   sodipodi:docname="cover-placeholder.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   sodipodi:modified="true"
+   version="1.1">
+  <script />
+  <svg:defs
+     id="defs4">
+    <svg:marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend"
+       style="overflow:visible">
+      <svg:path
+         sodipodi:nodetypes="cccc"
+         id="path4380"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,5.5,0)"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       inkscape:stockid="Arrow2Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lstart"
+       style="overflow:visible">
+      <svg:path
+         sodipodi:nodetypes="cccc"
+         id="path4371"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(1.1,0,0,1.1,-5.5,0)"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       inkscape:stockid="DistanceIn"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="DistanceIn"
+       style="overflow:visible">
+      <svg:g
+         transform="matrix(0.6,0,0,0.6,4.8,0)"
+         id="g987">
+        <svg:path
+           sodipodi:nodetypes="ccccc"
+           id="path974"
+           d="M 0,0 5,-5 -12.5,0 5,5 Z"
+           style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+           inkscape:connector-curvature="0" />
+        <svg:path
+           id="path976"
+           d="M -14.759949,-7 V 65"
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1.20000002pt;marker-start:none"
+           inkscape:connector-curvature="0" />
+      </svg:g>
+    </svg:marker>
+    <svg:marker
+       inkscape:stockid="DistanceOut"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="DistanceOut"
+       style="overflow:visible">
+      <svg:g
+         transform="matrix(-0.6,0,0,0.6,-4.8,0)"
+         id="g990">
+        <svg:path
+           sodipodi:nodetypes="ccccc"
+           id="path991"
+           d="M 0,0 5,-5 -12.5,0 5,5 Z"
+           style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+           inkscape:connector-curvature="0" />
+        <svg:path
+           id="path992"
+           d="M -14.759949,-7 V 65"
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1.20000002pt;marker-start:none"
+           inkscape:connector-curvature="0" />
+      </svg:g>
+    </svg:marker>
+    <svg:marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Mend"
+       style="overflow:visible">
+      <svg:path
+         sodipodi:nodetypes="cccc"
+         id="path4377"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-0.6,0,0,-0.6,3,0)"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       inkscape:stockid="Arrow1Mstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mstart"
+       style="overflow:visible">
+      <svg:path
+         sodipodi:nodetypes="ccccc"
+         id="path4385"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+         transform="scale(0.4)"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2347"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mstart">
+      <svg:path
+         transform="scale(0.4)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path2349"
+         sodipodi:nodetypes="ccccc"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2343"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <svg:path
+         transform="matrix(-0.6,0,0,-0.6,3,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2345"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2335"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DistanceOut">
+      <svg:g
+         id="g2337"
+         transform="matrix(-0.6,0,0,0.6,-4.8,0)">
+        <svg:path
+           style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+           d="M 0,0 5,-5 -12.5,0 5,5 Z"
+           id="path2339"
+           sodipodi:nodetypes="ccccc"
+           inkscape:connector-curvature="0" />
+        <svg:path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1.20000002pt;marker-start:none"
+           d="M -14.759949,-7 V 65"
+           id="path2341"
+           inkscape:connector-curvature="0" />
+      </svg:g>
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2327"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DistanceIn">
+      <svg:g
+         id="g2329"
+         transform="matrix(0.6,0,0,0.6,4.8,0)">
+        <svg:path
+           style="fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;marker-start:none"
+           d="M 0,0 5,-5 -12.5,0 5,5 Z"
+           id="path2331"
+           sodipodi:nodetypes="ccccc"
+           inkscape:connector-curvature="0" />
+        <svg:path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1.20000002pt;marker-start:none"
+           d="M -14.759949,-7 V 65"
+           id="path2333"
+           inkscape:connector-curvature="0" />
+      </svg:g>
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2323"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lstart">
+      <svg:path
+         transform="matrix(1.1,0,0,1.1,-5.5,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2325"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+    <svg:marker
+       style="overflow:visible"
+       id="marker2319"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend">
+      <svg:path
+         transform="matrix(-1.1,0,0,-1.1,5.5,0)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2321"
+         sodipodi:nodetypes="cccc"
+         inkscape:connector-curvature="0" />
+    </svg:marker>
+  </svg:defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.76200001"
+     inkscape:cx="-228.6581"
+     inkscape:cy="203.33848"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1680"
+     inkscape:window-height="988"
+     inkscape:window-x="1366"
+     inkscape:window-y="33"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-maximized="1" />
+  <svg:metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>CD Jewel Case Template - Inside Back Cover</dc:title>
+        <dc:date>24/09/2006</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Kevin Deldycke</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Inkscape</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by/3.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by/2.0/">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Notice" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Attribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </svg:metadata>
+  <svg:g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-299.73932,-209.35316)">
+    <svg:rect
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#000000;fill-opacity:0.26800001;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none"
+       id="rect2763"
+       width="487.95081"
+       height="415.33804"
+       x="300.23932"
+       y="209.85338" />
+    <svg:path
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#ffffff;fill-opacity:0.308;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none"
+       d="m 517.13131,209.87645 c -95.83097,20.55552 -167.78125,105.77692 -167.78125,207.71875 0,101.85234 71.82639,186.97407 167.53125,207.625 h 89.90625 c 95.70486,-20.65092 167.5,-105.77266 167.5,-207.625 0,-101.94183 -71.91902,-187.16323 -167.75,-207.71875 z"
+       id="rect6307"
+       inkscape:connector-curvature="0" />
+    <svg:rect
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#000000;fill-opacity:0.66399997;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none"
+       id="rect1367"
+       width="34.458591"
+       height="415.33847"
+       x="300.23932"
+       y="209.85316" />
+  </svg:g>
+</svg:svg>

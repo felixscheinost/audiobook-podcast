@@ -11,49 +11,11 @@ body {
     padding: 0;
 }
 
-#select {
-    margin-left: 10px;
-}
-
-#convert {
-    margin-left: 10px;
-}
-
-#toolbar div {
-    padding: 0;
-}
-
 #audiobook-container {
     margin: 0;
 }
 
-#series-container {
-    margin: 0;
-}
-
-.series {
-    padding: 0;
-    margin-bottom: 15px;
-    margin-right: 8px;
-}
-
-.series .img {
-    display: block;
-    margin: 0 auto;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-}
-
-.series:hover .img {
-    border-color: gray;
-    box-sizing: border-box;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
-}
-
-.series:hover {
-    text-decoration: none;
-}
+/** MODAL **/
 
 .book-modal img, .book-modal a {
     float: left;
@@ -67,51 +29,6 @@ body {
 
 .book-modal a {
     margin: 10px 10px 10px 0;
-}
-
-.sidebar {
-    height: 100vh;
-    padding: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-}
-
-.sidebar li {
-    display: block;
-    width: 100%;
-    padding: 0;
-}
-
-.sidebar li a {
-    color: black;
-    -webkit-transition: .2s ease-out;
-    transition: .2s ease-out;
-    font-weight: 600;
-}
-
-.sidebar li.active a {
-    background-color: #c9c3c3;
-}
-
-.sidebar li a:hover {
-    background-color: #c9c3c3;
-}
-
-.sidebar .fas {
-    width: 20px;
-    margin-right: 5px;
-}
-
-.nav-cat {
-    text-transform: uppercase;
-    color: #797777;
-    font-size: 15px;
-    margin: 5px 10px;    
-}
-
-.nav-cat-item a {
-    padding-left: 35px !important;
 }
 
 /** AUDIOBOOK **/
@@ -132,44 +49,15 @@ body {
 
 .audiobook img:hover {
     cursor: pointer;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
 }
 
-.selectable .audiobook:not(.selected) {
-    padding: 0 25px;
+.audiobook .img-wrapper {
+    position: relative;
 }
 
-.selectable .audiobook:not(.selected) img {
-    opacity: 0.5;
-}
-
-/** CONVERSION **/
-
-.conversion-job {
-    background-color: white;
-    border-radius: 4px;
-    margin-top: 10px;
-    padding: 10px;
-}
-
-.conversion-job tr td:first-child {
-    width: 25px;
-}
-
-.conversion-job tr td {
-    padding-top: 4px;
-}
-
-.conversion-job ul {
-    padding: 0;
-    list-style-type: none;
-}
-
-.conversion-job ul li {
-    margin-top: 5px;
-}
-
-.conversion-job .progress {
-    height: 15px;
-    width: 150px;
+.audiobook .placeholder-title {
+    position: absolute;
+    top: 25%;
+    left: 25%;
 }

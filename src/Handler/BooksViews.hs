@@ -3,10 +3,12 @@
 
 module Handler.BooksViews where
 
-import           Database   (Audiobook, AudiobookT (..))
+import           Database         (Audiobook, AudiobookT (..))
 import qualified Database
 import           Foundation
 import           Import
+import qualified Library
+import qualified System.Directory as Directory
 
 
 searchWidget :: Maybe Widget -> Widget
@@ -20,13 +22,31 @@ searchWidget additionalTools =
                     ^{w}
     |]
 
+singleBook :: Audiobook -> Widget
+singleBook book@Audiobook{abAuthor=abAuthor, abTitle=abTitle} = do
+    coverExists <- liftIO $ Directory.doesFileExist $ Library.getAudiobookCover book
+    [whamlet|
+        <div .audiobook .col-md-3 .col-lg-2 .col-xl-2 .col-sm-3 .col-4>
+            $if coverExists
+                <div .img-wrapper>
+                    <img src=@{BookCoverByAuthorTitleR abAuthor abTitle}
+                        data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
+            $else
+                <div .img-wrapper>
+                    <img src=@{StaticR img_cover_placeholder_svg}
+                        data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
+                    <span .placeholder-title>
+                        #{abTitle}
+                        <br>
+                        <small>#{abAuthor}
+    |]
+
+
 audiobookContainerWidget :: [Audiobook] -> Widget
 audiobookContainerWidget books =
     [whamlet|
-        $forall Audiobook{abAuthor=abAuthor, abTitle=abTitle} <- books
-            <div .audiobook .col-md-3 .col-lg-2 .col-xl-2 .col-sm-3 .col-4>
-                <div .img-wrapper>
-                    <img src=@{BookCoverByAuthorTitleR abAuthor abTitle} data-modal-url=@{BookOverlayByAuthorTitleR abAuthor abTitle}>
+        $forall book <- books
+            ^{singleBook book}
     |]
 
 getBookViewR :: Handler Html
