@@ -11,7 +11,8 @@
 
 module Foundation where
 
-import           Database               (AppDbConnection, RunSQL (..), runSQL)
+import           Database               (AbAuthor, AbTitle, AppDbConnection,
+                                         RunSQL (..), runSQL)
 import qualified Database.SQLite.Simple as Sql
 import           Import.NoFoundation
 import           Library                (MonadApplication)

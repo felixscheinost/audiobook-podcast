@@ -46,6 +46,7 @@ dependencies:
 - process-extras
 - attoparsec
 - mono-traversable
+- blaze-markup
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

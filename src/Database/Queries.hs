@@ -31,7 +31,7 @@ import           Database.Tables
 
 data BookOrSeries = Book Int | Series (NonNull [Int])
 
-getAudiobookByAuthorTitle :: Text -> Text -> Connection -> IO (Maybe Audiobook)
+getAudiobookByAuthorTitle :: AbAuthor -> AbTitle -> Connection -> IO (Maybe Audiobook)
 getAudiobookByAuthorTitle _author _title conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do
     b <- all_ (dbAudiobooks db)
     guard_ (abTitle b ==. val_ _title)
@@ -54,20 +54,20 @@ listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ selec
         (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
         (all_ (dbAudiobooks db))
     forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
-        guard_ $ (abTitle b `like_` val_ ("%" <> word <> "%"))
-                ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
-                ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
+        guard_ $ (abTitle b `like_` val_ (AbTitle $ "%" <> word <> "%"))
+                ||. (abAuthor b `like_` val_ (AbAuthor $ "%" <> word <> "%"))
+                ||. (fromMaybe_ (val_ $ AbSeries "") (abSeries b) `like_` val_ (AbSeries $ "%" <> word <> "%"))
     return b
 
-listBooksQuery2 :: Maybe Text -> Connection -> IO [(Text, Maybe Text, Maybe Text)]
+listBooksQuery2 :: Maybe Text -> Connection -> IO [(AbAuthor, Maybe AbSeries, Maybe AbTitle)]
 listBooksQuery2 mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ nub_ $ do
     b <- orderBy_
         (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
         (all_ (dbAudiobooks db))
     forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
-        guard_ $ (abTitle b `like_` val_ ("%" <> word <> "%"))
-                ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
-                ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
+        guard_ $ (abTitle b `like_` val_ (AbTitle $ "%" <> word <> "%"))
+                ||. (abAuthor b `like_` val_ (AbAuthor $ "%" <> word <> "%"))
+                ||. (fromMaybe_ (val_ $ AbSeries "") (abSeries b) `like_` val_ (AbSeries $ "%" <> word <> "%"))
     return
         ( abAuthor b
         , abSeries b

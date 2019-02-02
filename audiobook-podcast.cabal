@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b261897309ff335eedba26344a94091566ca1e0d366b8d219c286a863670ce65
+-- hash: adc006add8cd51fdb5a497c23e83105b6dd7c530ebf6c6559a4d31a662421903
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -50,6 +50,7 @@ library
     , beam-core
     , beam-sqlite
     , binary
+    , blaze-markup
     , bytestring
     , case-insensitive
     , classy-prelude-yesod
@@ -110,6 +111,7 @@ executable audiobook-podcast
     , beam-core
     , beam-sqlite
     , binary
+    , blaze-markup
     , bytestring
     , case-insensitive
     , classy-prelude-yesod

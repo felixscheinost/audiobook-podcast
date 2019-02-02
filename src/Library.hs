@@ -17,8 +17,10 @@ import qualified Data.Conduit.Combinators as CDT
 import qualified Data.Conduit.List        as CDTL
 import           Data.Text                (Text)
 import qualified Data.Text                as T
-import           Database                 (AppDbConnection, Audiobook,
-                                           AudiobookT (..), RunSQL, runSQL)
+import           Database                 (AbAuthor (..), AbSeries (..),
+                                           AbTitle (..), AppDbConnection,
+                                           Audiobook, AudiobookT (..), RunSQL,
+                                           runSQL)
 import qualified Database
 import           Database.Beam
 import           Import.NoFoundation
@@ -87,9 +89,9 @@ parseATS author = do
     lift (skipWhile ((||) <$> (== ' ') <*> (== '-')))
     title <- lift upToExtension
     extension
-    return $ Audiobook { abAuthor=author
-                       , abTitle=title
-                       , abSeries=Just series
+    return $ Audiobook { abAuthor=AbAuthor author
+                       , abTitle=AbTitle title
+                       , abSeries=Just (AbSeries series)
                        , abSeriesIndex=Just seriesIndex
                        }
 
@@ -97,8 +99,8 @@ parseAT :: Text -> ReaderT AppSettings Parser Audiobook
 parseAT author = do
     title <- lift upToExtension
     extension
-    return $ Audiobook { abAuthor=author
-                       , abTitle=title
+    return $ Audiobook { abAuthor=AbAuthor author
+                       , abTitle=AbTitle title
                        , abSeries=Nothing
                        , abSeriesIndex=Nothing
                        }
