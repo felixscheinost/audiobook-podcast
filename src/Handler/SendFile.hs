@@ -67,6 +67,7 @@ parseRange fileSize = do
 sendFileMime :: FilePath -> Handler TypedContent
 sendFileMime fp = do
     let mime = defaultMimeLookup $ T.pack $ takeFileName fp
+    cacheSeconds (3600 * 12)
     sendFile mime fp
 
 -- Had sporadic problems with high CPU (probAudiobookly GC) using `sendFile`
