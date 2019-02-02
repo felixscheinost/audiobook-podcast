@@ -55,7 +55,9 @@ makeFoundation appSettings = do
         \   series TEXT, \
         \   series_index INTEGER \
         \ ); \
-        \ CREATE UNIQUE INDEX author-title-idx ON audiobooks (author, title)"
+        \ CREATE UNIQUE INDEX title-authoridx ON audiobooks (title, author); \
+        \ CREATE UNIQUE INDEX series-author-idx ON audiobooks (series, author); \
+        \ PRAGMA case_sensitive_like=OFF;"
     appDbConnection <- newMVar conn
     let app = App {..}
     _ <- runApplicationIO app Library.reloadLibrary

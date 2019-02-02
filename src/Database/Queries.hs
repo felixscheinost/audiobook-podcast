@@ -9,6 +9,7 @@ module Database.Queries (
     getAudiobookById,
     listBooks,
     listBooksQuery,
+    listBooksQuery2,
     deleteAllAudiobooks,
     BookOrSeries
 ) where
@@ -50,13 +51,28 @@ listBooks = listBooksQuery Nothing
 listBooksQuery :: Maybe Text -> Connection -> IO [Audiobook]
 listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ do
     b <- orderBy_
-        (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abSeriesIndex b), asc_ (abTitle b)))
+        (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
         (all_ (dbAudiobooks db))
     forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
         guard_ $ (abTitle b `like_` val_ ("%" <> word <> "%"))
                 ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
                 ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
     return b
+
+listBooksQuery2 :: Maybe Text -> Connection -> IO [(Text, Maybe Text, Maybe Text)]
+listBooksQuery2 mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ nub_ $ do
+    b <- orderBy_
+        (\b -> (asc_ (abAuthor b), asc_ (abSeries b), asc_ (abTitle b)))
+        (all_ (dbAudiobooks db))
+    forM_ (T.words (fromMaybe "" mQuery)) $ \word ->
+        guard_ $ (abTitle b `like_` val_ ("%" <> word <> "%"))
+                ||. (abAuthor b `like_` val_ ("%" <> word <> "%"))
+                ||. (fromMaybe_ (val_ "") (abSeries b) `like_` val_ ("%" <> word <> "%"))
+    return
+        ( abAuthor b
+        , abSeries b
+        , if_ [isNothing_ (abSeries b) `then_` just_ (abTitle b)] (else_ nothing_)
+        )
 
 deleteAll :: forall be db delete table
             . IsSql92DeleteSyntax delete
