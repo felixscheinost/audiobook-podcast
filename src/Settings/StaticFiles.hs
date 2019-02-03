@@ -2,7 +2,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Settings.StaticFiles where
 
---import Yesod.Static (staticFiles)
 import           Prelude                         (Bool (..))
 import           Yesod.EmbeddedStatic            (mkEmbeddedStatic)
 import           Yesod.EmbeddedStatic.Generators (embedDir)
