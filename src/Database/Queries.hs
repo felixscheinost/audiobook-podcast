@@ -13,7 +13,6 @@ module Database.Queries (
     BookOrSeries
 ) where
 
-import           Control.Monad                   (forM_)
 import           Data.Maybe                      (fromMaybe)
 import           Data.NonNull                    (NonNull (..))
 import           Data.Proxy
@@ -27,6 +26,7 @@ import           Database.Beam.Schema.Tables     (DatabaseEntity (..), DatabaseE
 import           Database.Beam.Sqlite
 import           Database.SQLite.Simple          (Connection)
 import           Database.Tables
+import           Import.NoFoundation             hiding (Proxy)
 
 data BookOrSeries = Book Int | Series (NonNull [Int])
 

@@ -4,7 +4,8 @@ version: "0.0.0"
 dependencies:
 - aeson
 - base
-- classy-prelude-yesod 
+- classy-prelude-conduit 
+- data-default
 - filepath
 - shakespeare
 - warp
@@ -35,6 +36,7 @@ dependencies:
 - temporary
 - process
 - http-types
+- http-conduit
 - yesod-newsfeed
 - time
 - scientific
@@ -42,6 +44,7 @@ dependencies:
 - stm
 - async
 - mtl
+- classy-prelude
 - safe-exceptions
 - process-extras
 - attoparsec
