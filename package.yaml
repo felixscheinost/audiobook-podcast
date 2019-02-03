@@ -52,7 +52,7 @@ dependencies:
 # defined below is just a thin wrapper.
 library:
   source-dirs: src
-  default-extensions: NamedFieldPuns, OverloadedStrings
+  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
   when:
   - condition: (flag(dev)) || (flag(library-only))
     then:
@@ -74,6 +74,7 @@ library:
 # Runnable executable for our application
 executables:
   audiobook-podcast:
+    default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
     main: Main.hs
     source-dirs: app
     ghc-options:

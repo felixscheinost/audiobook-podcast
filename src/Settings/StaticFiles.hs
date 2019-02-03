@@ -1,6 +1,5 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Settings.StaticFiles where
 
 --import Yesod.Static (staticFiles)

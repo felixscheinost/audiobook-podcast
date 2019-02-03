@@ -1,6 +1,5 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Settings (
     AppSettings(..),
@@ -12,9 +11,11 @@ module Settings (
     runSettingsReader
 ) where
 
-import           ClassyPrelude.Yesod
+import           ClassyPrelude
 import           Control.Monad.Trans.Reader (ReaderT)
-import           Data.Aeson                 (withObject, (.!=), (.:?))
+import           Data.Aeson                 (FromJSON (..), withObject, (.!=),
+                                             (.:), (.:?))
+import           Data.Default               (def)
 import           Language.Haskell.TH.Syntax (Exp, Q)
 import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
 import           Yesod.Default.Util         (WidgetFileSettings,

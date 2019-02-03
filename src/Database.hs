@@ -1,5 +1,4 @@
 
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Database (
@@ -16,7 +15,7 @@ import           Database.Beam.Sqlite
 import           Database.Queries
 import           Database.SQLite.Simple as Sql
 import           Database.Tables
-import           Import.NoFoundation
+import           Import.NoFoundation    hiding (insert)
 
 type AppDbConnection = MVar Sql.Connection
 

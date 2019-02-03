@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module Handler.SendFile (
     sendFileMime,
     sendFileConduit,

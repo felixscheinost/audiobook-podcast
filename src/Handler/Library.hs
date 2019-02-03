@@ -1,5 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Handler.Library (
     getReloadLibraryR
