@@ -50,6 +50,8 @@ dependencies:
 - attoparsec
 - mono-traversable
 - blaze-markup
+- JuicyPixels
+- JuicyPixels-extra
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

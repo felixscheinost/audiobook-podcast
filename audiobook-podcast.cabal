@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: adc006add8cd51fdb5a497c23e83105b6dd7c530ebf6c6559a4d31a662421903
+-- hash: 45980209d88c6822b3b577fd4eafc3a8d1bbde4e72bce97f2bf6c3822284d28c
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -26,7 +26,6 @@ library
       Database
       Database.Queries
       Database.Tables
-      FFmpeg
       Foundation
       Handler.BooksViews
       Handler.Library
@@ -35,15 +34,18 @@ library
       Import
       Import.NoFoundation
       Library
+      PictureTools
       Settings
       Settings.StaticFiles
   other-modules:
       Paths_audiobook_podcast
   hs-source-dirs:
       src
-  default-extensions: NamedFieldPuns, OverloadedStrings
+  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
   build-depends:
-      aeson
+      JuicyPixels
+    , JuicyPixels-extra
+    , aeson
     , async
     , attoparsec
     , base
@@ -53,14 +55,17 @@ library
     , blaze-markup
     , bytestring
     , case-insensitive
-    , classy-prelude-yesod
+    , classy-prelude
+    , classy-prelude-conduit
     , conduit
     , conduit-extra
     , containers
+    , data-default
     , directory
     , exceptions
     , fast-logger
     , filepath
+    , http-conduit
     , http-types
     , mime-types
     , monad-logger
@@ -101,9 +106,12 @@ executable audiobook-podcast
       Paths_audiobook_podcast
   hs-source-dirs:
       app
+  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      JuicyPixels
+    , JuicyPixels-extra
+    , aeson
     , async
     , attoparsec
     , audiobook-podcast
@@ -114,14 +122,17 @@ executable audiobook-podcast
     , blaze-markup
     , bytestring
     , case-insensitive
-    , classy-prelude-yesod
+    , classy-prelude
+    , classy-prelude-conduit
     , conduit
     , conduit-extra
     , containers
+    , data-default
     , directory
     , exceptions
     , fast-logger
     , filepath
+    , http-conduit
     , http-types
     , mime-types
     , monad-logger

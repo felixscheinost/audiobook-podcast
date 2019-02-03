@@ -5,16 +5,20 @@
 
 module Handler.SingleBook where
 
-import qualified Data.Text        as T
-import           Data.Time.Clock  (getCurrentTime)
-import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
-                                   AudiobookT (..))
-import qualified Database         as DB
-import qualified Handler.SendFile as SendFile
-import           Import           hiding (count, fileSize)
+import qualified Codec.Picture      as Picture
+import qualified Data.List.NonEmpty as NonEmpty
+import           Data.NonNull       (NonNull)
+import qualified Data.Text          as T
+import           Data.Time.Clock    (getCurrentTime)
+import           Database           (AbAuthor, AbSeries, AbTitle (..),
+                                     Audiobook, AudiobookT (..))
+import qualified Database           as DB
+import qualified Handler.SendFile   as SendFile
+import           Import             hiding (count, fileSize)
 import qualified Library
-import qualified System.Directory as Directory
-import           Yesod.RssFeed    (RepRss, rssFeed)
+import qualified PictureTools
+import qualified System.Directory   as Directory
+import           Yesod.RssFeed      (RepRss, rssFeed)
 
 withBook :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
 withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f
@@ -22,8 +26,8 @@ withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author
 withSeriesBooks :: ([Audiobook] -> Handler a) -> AbAuthor -> AbSeries -> Handler a
 withSeriesBooks f _author _series = runSQL (DB.getAudiobooksByAuthorSeries _author _series) >>= f
 
-getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
-getBookCoverR = withBook $ \book -> do
+bookCover :: Audiobook -> Handler TypedContent
+bookCover book = do
     let path = Library.getAudiobookCover book
     exists <- liftIO $ Directory.doesFileExist path
     if exists then
@@ -31,10 +35,20 @@ getBookCoverR = withBook $ \book -> do
     else
         redirect (StaticR img_cover_placeholder_svg)
 
+getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
+getBookCoverR = withBook bookCover
+
 getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
-getSeriesCoverR = withSeriesBooks $ \case
-        []     -> notFound
-        book:_ -> SendFile.sendFileMime (Library.getAudiobookCover book)
+getSeriesCoverR = withSeriesBooks $ \books -> do
+    pictures <- do
+        paths <- liftIO $ filterM Directory.doesFileExist $ fmap Library.getAudiobookCover books
+        catMaybes <$> mapM PictureTools.loadImage paths
+    case pictures of
+        [] -> redirect (StaticR img_cover_placeholder_svg)
+        _  -> do
+            let pictureLBS = Picture.encodePng $ PictureTools.pictureCollage 500 500 pictures
+            respond typePng pictureLBS
+
 
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)
