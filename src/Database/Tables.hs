@@ -15,7 +15,6 @@ import           Data.Text                        (Text)
 import           Database.Beam
 import           Database.Beam.Backend.SQL.SQL92
 import           Database.Beam.Sqlite             (Sqlite)
-import           Database.Beam.Sqlite.Syntax      (SqliteSyntax)
 import           Database.SQLite.Simple.FromField
 import           Import.NoFoundation
 import           Text.Blaze                       (ToMarkup)
@@ -41,6 +40,14 @@ data AudiobookT f = Audiobook
     , abSeries      :: Columnar f (Maybe AbSeries)
     , abSeriesIndex :: Columnar f (Maybe Int)
     } deriving Generic
+
+data NewAudiobook = NewAudiobook
+    { nabPath        :: Text
+    , nabTitle       :: AbTitle
+    , nabAuthor      :: AbAuthor
+    , nabSeries      :: Maybe AbSeries
+    , nabSeriesIndex :: Maybe Int
+    }
 
 type Audiobook = AudiobookT Identity
 type AudiobookId = PrimaryKey AudiobookT Identity

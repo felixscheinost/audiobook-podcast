@@ -2,12 +2,8 @@ module PictureTools (
     pictureCollage
 )where
 
-import           Codec.Picture       (Image, Pixel, PixelBaseComponent,
-                                      PixelRGBA8 (..), pixelAt)
+import           Codec.Picture       (Image, PixelRGBA8 (..))
 import qualified Codec.Picture       as Picture
-import qualified Codec.Picture.Extra as Extra
-import           Data.List.NonEmpty  (NonEmpty (..))
-import qualified Data.List.NonEmpty  as NonEmpty
 import qualified Data.Text           as T
 import           Import.NoFoundation
 import qualified System.Directory    as Directory
@@ -26,9 +22,9 @@ image img = ImageDesc
     }
 
 upTo :: Int -> (Int -> a) -> (Int -> a) -> (Int -> a)
-upTo maxX below above x
-    | x < maxX = below x
-    | otherwise = above (x - maxX)
+upTo maxX fBelow fAbove x
+    | x < maxX = fBelow x
+    | otherwise = fAbove (x - maxX)
 {-# INLINE upTo #-}
 
 beside :: ImageDesc -> ImageDesc -> ImageDesc
@@ -52,7 +48,7 @@ mulp pixel x = Picture.colorMap (floor . (* x) . fromIntegral) pixel
 addp :: PixelRGBA8 -> PixelRGBA8 -> PixelRGBA8
 addp = Picture.mixWith (const f)
   where
-    f x y = fromIntegral (255 `min` (fromIntegral x + fromIntegral y))
+    f x y = 255 `min` (x + y)
 {-# INLINE addp #-}
 
 scaleBilinear :: Int -> Int -> ImageDesc -> ImageDesc
@@ -100,16 +96,15 @@ loadImage filepath = do
 _pictureCollage :: Int -> Int -> [Image PixelRGBA8] -> ImageDesc
 _pictureCollage width height pics =
     case pics of
-        []        -> empty width height
+        []        -> idEmpty width height
         a:b:c:d:_ -> arrange (scale a) (scale b) (scale c) (scale d)
         a:_       -> scaleBilinear width height (image a)
     where
         partWidth = width `quot` 2
         partHeight = width `quot` 2
-        empty w h = ImageDesc { idGetPixel = \_ _ -> PixelRGBA8 0 0 0 255, idWidth = w, idHeight = h }
+        idEmpty w h = ImageDesc { idGetPixel = \_ _ -> PixelRGBA8 0 0 0 255, idWidth = w, idHeight = h }
         scale = scaleBilinear partWidth partHeight . image
         arrange a b c d = below (beside a b) (beside c d)
-        emptyPart = empty partWidth partHeight
 
 -- | Return a grid of 2x2 if 4 or more picture are available or a scaled version of the first picture if less than 4 are available
 -- | Return Nothing if no pictures are available

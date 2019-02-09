@@ -15,21 +15,21 @@ import           Database.Beam.Sqlite
 import           Database.Queries
 import           Database.SQLite.Simple as Sql
 import           Database.Tables
-import           Import.NoFoundation    hiding (insert)
+import           Import.NoFoundation
 
 type AppDbConnection = MVar Sql.Connection
 
-insertAudiobook :: Audiobook -> Connection -> IO ()
-insertAudiobook ab conn = runBeamSqlite conn  $ runInsert $
+insertAudiobook :: NewAudiobook -> Connection -> IO ()
+insertAudiobook nab conn = runBeamSqlite conn  $ runInsert $
     insert (dbAudiobooks db) $
         insertExpressions [
             Audiobook
                 default_
-                (val_ $ abPath ab)
-                (val_ $ abTitle ab)
-                (val_ $ abAuthor ab)
-                (val_ $ abSeries ab)
-                (val_ $ abSeriesIndex ab)
+                (val_ $ nabPath nab)
+                (val_ $ nabTitle nab)
+                (val_ $ nabAuthor nab)
+                (val_ $ nabSeries nab)
+                (val_ $ nabSeriesIndex nab)
         ]
 
 class MonadIO m => RunSQL m where

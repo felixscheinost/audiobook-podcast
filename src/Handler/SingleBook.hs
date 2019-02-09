@@ -5,20 +5,18 @@
 
 module Handler.SingleBook where
 
-import qualified Codec.Picture      as Picture
-import qualified Data.List.NonEmpty as NonEmpty
-import           Data.NonNull       (NonNull)
-import qualified Data.Text          as T
-import           Data.Time.Clock    (getCurrentTime)
-import           Database           (AbAuthor, AbSeries, AbTitle (..),
-                                     Audiobook, AudiobookT (..))
-import qualified Database           as DB
-import qualified Handler.SendFile   as SendFile
-import           Import             hiding (count, fileSize)
+import qualified Codec.Picture    as Picture
+import qualified Data.Text        as T
+import           Data.Time.Clock  (getCurrentTime)
+import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
+                                   AudiobookT (..))
+import qualified Database         as DB
+import qualified Handler.SendFile as SendFile
+import           Import
 import qualified Library
 import qualified PictureTools
-import qualified System.Directory   as Directory
-import           Yesod.RssFeed      (RepRss, rssFeed)
+import qualified System.Directory as Directory
+import           Yesod.RssFeed    (RepRss, rssFeed)
 
 withBook :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
 withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f

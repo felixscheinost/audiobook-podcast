@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 45980209d88c6822b3b577fd4eafc3a8d1bbde4e72bce97f2bf6c3822284d28c
+-- hash: 3482f8e9439b20f73a578f6571d799b89a891b7efeb9c000effdb5487ab5a9de
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -44,7 +44,6 @@ library
   default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
   build-depends:
       JuicyPixels
-    , JuicyPixels-extra
     , aeson
     , async
     , attoparsec
@@ -110,7 +109,6 @@ executable audiobook-podcast
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       JuicyPixels
-    , JuicyPixels-extra
     , aeson
     , async
     , attoparsec

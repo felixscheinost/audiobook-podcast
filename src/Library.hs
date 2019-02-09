@@ -1,5 +1,5 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Library (
     getAudiobookCover,
@@ -16,15 +16,12 @@ import qualified Data.Conduit.List        as CDTL
 import           Data.Text                (Text)
 import qualified Data.Text                as T
 import           Database                 (AbAuthor (..), AbSeries (..),
-                                           AbTitle (..), AppDbConnection,
-                                           Audiobook, AudiobookT (..), RunSQL,
-                                           runSQL)
+                                           AbTitle (..), Audiobook,
+                                           AudiobookT (..), NewAudiobook (..),
+                                           RunSQL, runSQL)
 import qualified Database
 import           Database.Beam
 import           Import.NoFoundation
-import           Settings                 (AppSettings (appAudioExtensions),
-                                           ReadSettings, asksSettings,
-                                           runSettingsReader)
 import           System.FilePath          (extSeparator, makeRelative,
                                            pathSeparator, takeBaseName,
                                            takeDirectory, takeExtension, (<.>))
@@ -72,14 +69,14 @@ folder = do
 upToExtension :: Parser Text
 upToExtension = takeWhile1 ((&&) <$> (/= extSeparator) <*> (/= pathSeparator))
 
-extension :: ReaderT AppSettings Parser ()
+extension :: ReaderT (AppSettings, FilePath) Parser ()
 extension = do
-    audioExtensions <- asks appAudioExtensions
+    audioExtensions <- asks (appAudioExtensions . fst)
     lift $ do
         skip (== '.')
         choice (string <$> audioExtensions) $> ()
 
-parseATS :: Text -> ReaderT AppSettings Parser Audiobook
+parseATS :: Text -> ReaderT (AppSettings, FilePath) Parser NewAudiobook
 parseATS author = do
     series <- lift folder
     lift $ skipMany space
@@ -87,34 +84,39 @@ parseATS author = do
     lift (skipWhile ((||) <$> (== ' ') <*> (== '-')))
     title <- lift upToExtension
     extension
-    return $ Audiobook { abAuthor=AbAuthor author
-                       , abTitle=AbTitle title
-                       , abSeries=Just (AbSeries series)
-                       , abSeriesIndex=Just seriesIndex
-                       }
+    abPath <- asks snd
+    return $ NewAudiobook { nabAuthor=AbAuthor author
+                          , nabPath=T.pack abPath
+                          , nabTitle=AbTitle title
+                          , nabSeries=Just (AbSeries series)
+                          , nabSeriesIndex=Just seriesIndex
+                          }
 
-parseAT :: Text -> ReaderT AppSettings Parser Audiobook
+parseAT :: Text -> ReaderT (AppSettings, FilePath) Parser NewAudiobook
 parseAT author = do
     title <- lift upToExtension
     extension
-    return $ Audiobook { abAuthor=AbAuthor author
-                       , abTitle=AbTitle title
-                       , abSeries=Nothing
-                       , abSeriesIndex=Nothing
-                       }
+    abPath <- asks snd
+    return $ NewAudiobook { nabAuthor=AbAuthor author
+                          , nabPath=T.pack abPath
+                          , nabTitle=AbTitle title
+                          , nabSeries=Nothing
+                          , nabSeriesIndex=Nothing
+                          }
 
-parseAudiobook :: ReaderT AppSettings Parser Audiobook
+parseAudiobook :: ReaderT (AppSettings, FilePath) Parser NewAudiobook
 parseAudiobook = do
     author <- lift folder
     parseAT author <|> parseATS author
 
-audiobookFromFilePath :: ReadSettings m => FilePath -> m (Either String Audiobook)
+audiobookFromFilePath :: ReadSettings m => FilePath -> m (Either String NewAudiobook)
 audiobookFromFilePath filePath = do
     libraryPath <- appLibraryFolder <$> asksSettings
     let relativeFilePath = T.pack $ makeRelative libraryPath filePath
-    parser <- runSettingsReader parseAudiobook
+    appSettings <- asksSettings
+    let parser = runReaderT parseAudiobook (appSettings, filePath)
     let abOrError = parseOnly (parser <* endOfInput) relativeFilePath
     case abOrError of
-        Right ab -> return $ Right ab{abPath=T.pack filePath}
+        Right ab -> return $ Right ab
         Left err -> return $ Left $ "Error parsing " ++ T.unpack relativeFilePath ++ ": " ++ err
 

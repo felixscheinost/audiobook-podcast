@@ -2,14 +2,10 @@
 
 module Handler.BooksViews where
 
-import           Database         (AbAuthor, AbSeries, AbTitle, Audiobook,
-                                   AudiobookT (..))
+import           Database   (AbAuthor, AbSeries, AbTitle)
 import qualified Database
 import           Foundation
 import           Import
-import qualified Library
-import qualified System.Directory as Directory
-
 
 searchWidget :: Maybe Widget -> Widget
 searchWidget additionalTools =

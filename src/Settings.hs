@@ -18,8 +18,7 @@ import           Data.Aeson                 (FromJSON (..), withObject, (.!=),
 import           Data.Default               (def)
 import           Language.Haskell.TH.Syntax (Exp, Q)
 import           Yesod.Default.Config2      (ignoreEnv, loadYamlSettings)
-import           Yesod.Default.Util         (WidgetFileSettings,
-                                             widgetFileNoReload,
+import           Yesod.Default.Util         (widgetFileNoReload,
                                              widgetFileReload)
 
 data AppSettings = AppSettings
@@ -52,15 +51,6 @@ instance FromJSON AppSettings where
 
 getAppSettings :: IO AppSettings
 getAppSettings = loadYamlSettings ["settings.yaml"] [] ignoreEnv
-
--- | Settings for 'widgetFile', such as which template languages to support and
--- default Hamlet settings.
---
--- For more information on modifying behavior, see:
---
--- https://github.com/yesodweb/yesod/wiki/Overriding-widgetFile
-widgetFileSettings :: WidgetFileSettings
-widgetFileSettings = def
 
 widgetFile :: String -> Q Exp
 widgetFile =

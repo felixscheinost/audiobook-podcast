@@ -10,11 +10,9 @@ module Database.Queries (
     getAudiobookById,
     listBooksQuery,
     deleteAllAudiobooks,
-    BookOrSeries
 ) where
 
 import           Data.Maybe                      (fromMaybe)
-import           Data.NonNull                    (NonNull (..))
 import           Data.Proxy
 import           Data.Text                       (Text)
 import qualified Data.Text                       as T
@@ -27,8 +25,6 @@ import           Database.Beam.Sqlite
 import           Database.SQLite.Simple          (Connection)
 import           Database.Tables
 import           Import.NoFoundation             hiding (Proxy)
-
-data BookOrSeries = Book Int | Series (NonNull [Int])
 
 getAudiobookByAuthorTitle :: AbAuthor -> AbTitle -> Connection -> IO (Maybe Audiobook)
 getAudiobookByAuthorTitle _author _title conn = runBeamSqlite conn $ runSelectReturningOne $ select $ do

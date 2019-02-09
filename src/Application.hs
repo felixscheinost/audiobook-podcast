@@ -20,7 +20,7 @@ import           Network.Wai.Handler.Warp             (Settings,
                                                        setOnException, setPort)
 import           Network.Wai.Middleware.Gzip          (def, gzip)
 import           Network.Wai.Middleware.RequestLogger (IPAddrSource (FromSocket),
-                                                       OutputFormat (Apache, CustomOutputFormat),
+                                                       OutputFormat (Apache),
                                                        OutputFormatter,
                                                        RequestLoggerSettings (outputFormat),
                                                        mkRequestLogger)
@@ -75,7 +75,7 @@ makeApplication foundation = do
         defaultMiddlewaresNoLogging appPlain
 
 makeLogWare :: App -> IO Middleware
-makeLogWare foundation = mkRequestLogger def { outputFormat = Apache FromSocket }
+makeLogWare _ = mkRequestLogger def { outputFormat = Apache FromSocket }
 
 logWareFormat :: OutputFormatter
 logWareFormat _ req status _ =

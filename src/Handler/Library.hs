@@ -1,10 +1,7 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 module Handler.Library (
     getReloadLibraryR
 ) where
 
-import qualified Database
 import           Foundation
 import           Import
 import qualified Library
