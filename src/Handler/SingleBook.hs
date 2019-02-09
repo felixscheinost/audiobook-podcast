@@ -40,15 +40,10 @@ getBookCoverR = withBook bookCover
 
 getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
 getSeriesCoverR = withSeriesBooks $ \books -> do
-    pictures <- do
-        paths <- liftIO $ filterM Directory.doesFileExist $ fmap Library.getAudiobookCover books
-        catMaybes <$> mapM PictureTools.loadImage paths
-    case pictures of
-        [] -> redirect (StaticR img_cover_placeholder_svg)
-        _  -> do
-            let pictureLBS = Picture.encodePng $ PictureTools.pictureCollage 500 500 pictures
-            respond typePng pictureLBS
-
+    collage <- PictureTools.pictureCollage 500 500 $ fmap Library.getAudiobookCover books
+    case collage of
+        Nothing  -> redirect (StaticR img_cover_placeholder_svg)
+        Just pic -> respond typePng (Picture.encodePng pic)
 
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)
