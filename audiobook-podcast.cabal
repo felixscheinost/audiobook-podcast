@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3482f8e9439b20f73a578f6571d799b89a891b7efeb9c000effdb5487ab5a9de
+-- hash: 51ef699f12525fe6b669d0b963e93819004bd16e36007f8dc6a68305785b25cd
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -62,6 +62,7 @@ library
     , data-default
     , directory
     , exceptions
+    , extra
     , fast-logger
     , filepath
     , http-conduit
@@ -83,6 +84,7 @@ library
     , text
     , time
     , transformers
+    , unix
     , wai
     , wai-extra
     , wai-logger
@@ -128,6 +130,7 @@ executable audiobook-podcast
     , data-default
     , directory
     , exceptions
+    , extra
     , fast-logger
     , filepath
     , http-conduit
@@ -149,6 +152,7 @@ executable audiobook-podcast
     , text
     , time
     , transformers
+    , unix
     , wai
     , wai-extra
     , wai-logger

@@ -5,18 +5,17 @@
 
 module Handler.SingleBook where
 
-import qualified Codec.Picture    as Picture
-import qualified Data.Text        as T
-import           Data.Time.Clock  (getCurrentTime)
-import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
-                                   AudiobookT (..))
-import qualified Database         as DB
-import qualified Handler.SendFile as SendFile
+import           Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.Text          as T
+import           Data.Time.Clock    (getCurrentTime)
+import           Database           (AbAuthor, AbSeries, AbTitle (..),
+                                     Audiobook, AudiobookT (..))
+import qualified Database           as DB
+import qualified Handler.SendFile   as SendFile
 import           Import
 import qualified Library
-import qualified PictureTools
-import qualified System.Directory as Directory
-import           Yesod.RssFeed    (RepRss, rssFeed)
+import qualified System.Directory   as Directory
+import           Yesod.RssFeed      (RepRss, rssFeed)
 
 withBook :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
 withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f
@@ -26,22 +25,18 @@ withSeriesBooks f _author _series = runSQL (DB.getAudiobooksByAuthorSeries _auth
 
 bookCover :: Audiobook -> Handler TypedContent
 bookCover book = do
-    let path = Library.getAudiobookCover book
-    exists <- liftIO $ Directory.doesFileExist path
-    if exists then
-        SendFile.sendFileMime path
-    else
-        redirect (StaticR img_cover_placeholder_svg)
+    path <- Library.getAudiobookCoverPath book
+    maybe (redirect $ StaticR img_cover_placeholder_svg) (SendFile.sendFileMime) path
 
 getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookCoverR = withBook bookCover
 
 getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
-getSeriesCoverR = withSeriesBooks $ \books -> do
-    collage <- PictureTools.pictureCollage 500 500 $ fmap Library.getAudiobookCover books
-    case collage of
-        Nothing  -> redirect (StaticR img_cover_placeholder_svg)
-        Just pic -> respond typePng (Picture.encodePng pic)
+getSeriesCoverR = withSeriesBooks $ \case
+    []   ->  redirect (StaticR img_cover_placeholder_svg)
+    x:xs -> do
+        collagePath <- Library.getSeriesCoverPath (x :| xs)
+        maybe (redirect $ StaticR img_cover_placeholder_svg) SendFile.sendFileMime collagePath
 
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)

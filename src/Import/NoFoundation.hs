@@ -15,6 +15,7 @@ import           Yesod.EmbeddedStatic        as Import
 
 import           ClassyPrelude.Conduit       as Import hiding (Handler (..),
                                                         delete, deleteBy)
+import           Control.Monad.Extra         as Import (findM)
 import           Data.Default                as Import (Default (..))
 import           Network.HTTP.Client.Conduit as Import
 import           Network.HTTP.Types          as Import

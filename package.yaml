@@ -51,6 +51,8 @@ dependencies:
 - mono-traversable
 - blaze-markup
 - JuicyPixels
+- unix
+- extra
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

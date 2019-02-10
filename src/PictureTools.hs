@@ -2,19 +2,20 @@ module PictureTools (
     pictureCollage
 )where
 
-import           Codec.Picture       (Image, PixelRGBA8 (..))
+import           Codec.Picture       (DynamicImage (..), Image, PixelRGB8 (..))
 import qualified Codec.Picture       as Picture
+import           Data.List.NonEmpty  (NonEmpty (..))
+import qualified Data.List.NonEmpty  as NEL
 import qualified Data.Text           as T
 import           Import.NoFoundation
-import qualified System.Directory    as Directory
 
 data ImageDesc = ImageDesc
-    { idGetPixel :: !(Int -> Int -> PixelRGBA8)
+    { idGetPixel :: !(Int -> Int -> PixelRGB8)
     , idWidth    :: !Int
     , idHeight   :: !Int
     }
 
-image :: Image PixelRGBA8 -> ImageDesc
+image :: Image PixelRGB8 -> ImageDesc
 image img = ImageDesc
     { idGetPixel = Picture.pixelAt img
     , idWidth = Picture.imageWidth img
@@ -41,11 +42,11 @@ below a b = ImageDesc
     , idHeight = idHeight a + idHeight b
     }
 
-mulp :: PixelRGBA8 -> Float -> PixelRGBA8
+mulp :: PixelRGB8 -> Float -> PixelRGB8
 mulp pixel x = Picture.colorMap (floor . (* x) . fromIntegral) pixel
 {-# INLINE mulp #-}
 
-addp :: PixelRGBA8 -> PixelRGBA8 -> PixelRGBA8
+addp :: PixelRGB8 -> PixelRGB8 -> PixelRGB8
 addp = Picture.mixWith (const f)
   where
     f x y = 255 `min` (x + y)
@@ -78,12 +79,12 @@ scaleBilinear width height img = ImageDesc
                 dx = x' - fromIntegral x0
                 dy = y' - fromIntegral y0
 
--- | Render a ImageDesc to a Image PixelRGBA8
-idRender :: ImageDesc -> Image PixelRGBA8
+-- | Render a ImageDesc to a Image PixelRGB8
+idRender :: ImageDesc -> Image PixelRGB8
 idRender img = Picture.generateImage (idGetPixel img) (idWidth img) (idHeight img)
 
--- | Loads a picture and tries to convert its pixels to RGBA8
-loadImage :: (MonadIO m, MonadLogger m) => FilePath -> m (Maybe (Image PixelRGBA8))
+-- | Loads a picture and tries to convert its pixels to RGB8
+loadImage :: (MonadIO m, MonadLogger m) => FilePath -> m (Maybe (Image PixelRGB8))
 loadImage filepath = do
     res <- liftIO $ Picture.readImage filepath
     case res of
@@ -91,28 +92,23 @@ loadImage filepath = do
             logErrorN ("Error opening picture at " <> T.pack filepath <> ": " <> T.pack err)
             return Nothing
         Right picture ->
-            return (Just $ Picture.convertRGBA8 picture)
+            return (Just $ Picture.convertRGB8 picture)
 
-_pictureCollage :: Int -> Int -> [Image PixelRGBA8] -> ImageDesc
+_pictureCollage :: Int -> Int -> NonEmpty (Image PixelRGB8) -> ImageDesc
 _pictureCollage width height pics =
     case pics of
-        []        -> idEmpty width height
-        a:b:c:d:_ -> arrange (scale a) (scale b) (scale c) (scale d)
-        a:_       -> scaleBilinear width height (image a)
+        a :| b:c:d:_ -> arrange (scale a) (scale b) (scale c) (scale d)
+        a :| _       -> scaleBilinear width height (image a)
     where
         partWidth = width `quot` 2
         partHeight = width `quot` 2
-        idEmpty w h = ImageDesc { idGetPixel = \_ _ -> PixelRGBA8 0 0 0 255, idWidth = w, idHeight = h }
         scale = scaleBilinear partWidth partHeight . image
         arrange a b c d = below (beside a b) (beside c d)
 
 -- | Return a grid of 2x2 if 4 or more picture are available or a scaled version of the first picture if less than 4 are available
--- | Return Nothing if no pictures are available
-pictureCollage :: (MonadIO m, MonadLogger m) => Int -> Int -> [FilePath] -> m (Maybe (Image PixelRGBA8))
-pictureCollage w h paths = do
-    pictures <- do
-        existingPaths <- liftIO $ filterM Directory.doesFileExist paths
-        catMaybes <$> mapM PictureTools.loadImage existingPaths
-    case pictures of
-        [] -> return Nothing
-        _  -> return $ Just $ idRender $ _pictureCollage w h pictures
+pictureCollage :: (MonadIO m, MonadLogger m) => Int -> Int -> NonEmpty FilePath -> m (Maybe DynamicImage)
+pictureCollage w h paths= do
+    images <- catMaybes . NEL.toList <$> mapM loadImage paths
+    case images of
+        x:xs -> return $ Just $ ImageRGB8 $ idRender $ _pictureCollage w h (x :| xs)
+        []   -> return Nothing
