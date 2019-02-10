@@ -11,8 +11,8 @@ import           Import
 import           Library    (SeriesCover (..))
 import qualified Library
 
-searchWidget :: Maybe Text -> Maybe Widget -> Widget
-searchWidget query additionalTools =
+searchWidget :: Maybe Text -> Widget
+searchWidget query =
     [whamlet|
         <div .row #toolbar>
             <div .col-md-4 #search>
@@ -22,9 +22,6 @@ searchWidget query additionalTools =
                         <div .input-group-append>
                             <button type="submit" .btn.btn-primary>
                                 <span .fa.fa-search>
-            <div .col-md-8>
-                $maybe w <- additionalTools
-                    ^{w}
     |]
 
 singleBook :: Maybe Text -> (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
@@ -86,7 +83,7 @@ getBookViewR = do
                     setTitle $ toHtml ("Audiobook-Podcast" :: Text)
             Nothing -> setTitle $ toHtml ("Audiobook-Podcast" :: Text)
         [whamlet|
-            ^{searchWidget query Nothing}
+            ^{searchWidget query}
             <div .row #audiobook-container>
                 ^{audiobookContainerWidget query books}
         |]
