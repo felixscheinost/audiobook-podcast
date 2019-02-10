@@ -27,46 +27,50 @@ searchWidget query additionalTools =
                     ^{w}
     |]
 
-singleBook :: (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
-singleBook (author, series, title) = do
+singleBook :: Maybe Text -> (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
+singleBook searchQuery (author, series, title) = do
     seriesWithBooks <- flip (maybe (return Nothing)) series $ \abSeries -> do
         books <- runSQL (Database.getAudiobooksByAuthorSeries author abSeries)
         cover <- Library.getSeriesCover books
         return $ Just (abSeries, cover)
+    urlRender <- getUrlRenderParams
+    let modalUrl = case (series, title) of
+            (Just abSeries, _) -> urlRender (SeriesOverlayR author abSeries) []
+            (_, Just abTitle) -> urlRender (BookOverlayR author abTitle) []
+            _ -> ""
+    let titleOrSeries = case (series, title) of
+            (Just abSeries, _) -> toHtml abSeries
+            (_, Just abTitle)  -> toHtml abTitle
+            _                  -> ""
+    let bookTitleLinkHref = urlRender BookViewR $ ("modalUrl", modalUrl) : maybeToList (("query", ) <$> searchQuery)
     [whamlet|
         <div .audiobook .col-4 .col-sm-3 .col-md-3 .col-lg-2 .col-xl-2>
-            <div .audiobook-wrapper>
+            <div .audiobook-wrapper data-modal-url=#{modalUrl}>
                 $case (seriesWithBooks, title)
-                    $of (Just (abSeries, cover), _)
-                        $case cover
-                            $of GeneratedGrid audiobooksAndPaths
-                                <div .img-wrapper.four data-modal-url=@{SeriesOverlayR author abSeries}>
-                                    $forall (book, _) <- audiobooksAndPaths
-                                        <img src=@{BookCoverR author (abTitle book)}>
-                            $of _
-                                <div .img-wrapper.one data-modal-url=@{SeriesOverlayR author abSeries}>
-                                    <img src=@{SeriesCoverR author abSeries}>
-
-                        <div .text-wrapper>
-                            <span .text-bold> #{abSeries}
-                            <br>
-                            <span .text-small> #{author}
+                    $of (Just (_, GeneratedGrid audiobooksAndPaths), _)
+                        <div .img-wrapper.four>
+                            $forall (book, _) <- audiobooksAndPaths
+                                <img src=@{BookCoverR author (abTitle book)}>
+                    $of (Just (abSeries, _), _)
+                        <div .img-wrapper.one>
+                            <img src=@{SeriesCoverR author abSeries}>
                     $of (_, Just abTitle)
-                        <div .img-wrapper.one data-modal-url=@{BookOverlayR author abTitle}>
+                        <div .img-wrapper.one>
                             <img src=@{BookCoverR author abTitle}>
-                        <div .text-wrapper >
-                            <span .text-bold> #{abTitle}
-                            <br>
-                            <span .text-small> #{author}
                     $of _
-                        <br>
+                        <div .img-wrapper.one>
+                            <img src=@{StaticR img_cover_placeholder_svg}>
+                <div .text-wrapper>
+                    <a href=#{bookTitleLinkHref} .text-bold rel=title> #{titleOrSeries}
+                    <br>
+                    <span .text-small> #{author}
     |]
 
-audiobookContainerWidget :: [(AbAuthor, Maybe AbSeries, Maybe AbTitle)] -> Widget
-audiobookContainerWidget books =
+audiobookContainerWidget :: Maybe Text -> [(AbAuthor, Maybe AbSeries, Maybe AbTitle)] -> Widget
+audiobookContainerWidget searchQuery books =
     [whamlet|
         $forall book <- books
-            ^{singleBook book}
+            ^{singleBook searchQuery book}
     |]
 
 getBookViewR :: Handler Html
@@ -84,5 +88,5 @@ getBookViewR = do
         [whamlet|
             ^{searchWidget query Nothing}
             <div .row #audiobook-container>
-                ^{audiobookContainerWidget books}
+                ^{audiobookContainerWidget query books}
         |]
