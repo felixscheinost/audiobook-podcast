@@ -43,13 +43,17 @@ function encodeStateToUrl(state, push) {
  * State mechanism:
  *  - Subscribe to state changes
  *  - Sync state with URL
+ *  - State changes are only propagated when the state actually changes, not on every .set()
+ *  - Old state is saved in DOM so that e.g. when on back the browser loads the page with the old state,
+ *    No unnecessary XHR is triggered.
  * @param {String} name: The name of the property
  * @param {Boolean} push: if true changes to this property createa new history entry in the browser history
+ * @param {String} selector: jQuery selector where the current state is stored in
  */
-function StateProp(name, push) {
+function StateProp(name, push, selector) {
     var handlers = []
-    var lastValue
     this.name = name
+    var attr = 'data-' + name
 
     function callHandlers(value) {
         handlers.forEach(function (handler) {
@@ -57,17 +61,31 @@ function StateProp(name, push) {
         })
     }
 
+    this.getLastValue = function () {
+        return $(selector).attr(attr)
+    }
+
+    function setLastValue(val) {
+        if (val === undefined) {
+            $(selector).removeAttr(attr)
+        } else {
+            $(selector).attr(attr, val)
+        }
+    }
+
     this.subscribe = function (handler) {
         handlers.push(handler)
     }
 
     this.set = function (value) {
-        if (lastValue !== value) {
+        var currentValue = this.getLastValue()
+        if (currentValue !== value) {
+            console.log("set", name, value, "currentValue", currentValue)
             callHandlers(value)
             var state = decodeStateFromUrl()
             state[name] = value
             encodeStateToUrl(state, push)
-            lastValue = value
+            setLastValue(value)
         }
     }
 
@@ -83,8 +101,8 @@ function StateProp(name, push) {
  *  - searchQuery: The query in the search bar. Undefined if empty.
  */
 var State = {
-    modalUrl: new StateProp("modalUrl", true),
-    searchQuery: new StateProp("query", true)
+    modalUrl: new StateProp("modalUrl", false, "#ajax-modal"),
+    searchQuery: new StateProp("query", true, "#audiobook-container")
 }
 
 /**
