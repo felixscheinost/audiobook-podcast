@@ -3,11 +3,7 @@ function decodeStateFromUrl() {
     var state = {}
     window.location.search.substr(1).split("&").forEach(function (keyVal) {
         var split = keyVal.split("=")
-        var key = split[0]
-        var value = split[1]
-        if (key !== undefined && value !== undefined) {
-            state[decodeURIComponent(key)] = decodeURIComponent(value)
-        }
+        state[split[0]] = split[1]
     })
     return state
 }
@@ -20,9 +16,9 @@ function encodeStateToUrl(state, push) {
             if (stateForUrl.length > 0) {
                 stateForUrl += "&"
             }
-            stateForUrl += encodeURIComponent(key)
+            stateForUrl += key
             stateForUrl += "="
-            stateForUrl += encodeURIComponent(value)
+            stateForUrl += value
         }
     }
     var newUrl = window.location.href.split("?")[0]
@@ -80,10 +76,9 @@ function StateProp(name, push, selector) {
     this.set = function (value) {
         var currentValue = this.getLastValue()
         if (currentValue !== value) {
-            console.log("set", name, value, "currentValue", currentValue)
             callHandlers(value)
             var state = decodeStateFromUrl()
-            state[name] = value
+            state[name] = value && encodeURIComponent(value)
             encodeStateToUrl(state, push)
             setLastValue(value)
         }
@@ -91,7 +86,7 @@ function StateProp(name, push, selector) {
 
     var that = this;
     window.addEventListener('popstate', function () {
-        that.set(decodeStateFromUrl()[name])
+        that.set(decodeURIComponent(decodeStateFromUrl()[name]))
     });
 }
 
@@ -102,7 +97,6 @@ function StateProp(name, push, selector) {
  */
 var State = {
     modalUrl: new StateProp("modalUrl", false, "#ajax-modal"),
-    searchQuery: new StateProp("query", true, "#audiobook-container")
 }
 
 /**
@@ -114,7 +108,7 @@ State.modalUrl.subscribe(function (modalUrl) {
             $("#ajax-modal")
                 .modal({ show: true })
                 .on("hidden.bs.modal", function () {
-                    State.modalUrl.set(undefined)
+                    State.modalUrl.set(null)
                 })
 
             /**
@@ -127,16 +121,6 @@ State.modalUrl.subscribe(function (modalUrl) {
     }
 })
 
-/**
- * Handle search query
- */
-State.searchQuery.subscribe(function (query) {
-    // Uses POST => Server renders only book container
-    var data = { "query": query || "" }
-    $("#search input").val(query || "")
-    $("#audiobook-container").load(window.location.href, data)
-})
-
 $(document).ready(function () {
     /**
      * Modals for books
@@ -146,26 +130,13 @@ $(document).ready(function () {
     })
 
     /**
-     * Book search: On keyup update .container from same URL 300 ms debounced
-     */
-    var timer = null
-    $("#search input").on("keyup", function () {
-        if (timer !== null) {
-            clearTimeout(timer)
-        }
-        var input = $(this)
-        timer = setTimeout(function () {
-            State.searchQuery.set(input.val())
-        }, 300)
-    })
-
-    /**
      * Initial state from URL
      */
     var initialState = decodeStateFromUrl()
     for (var prop in State) {
         if (State.hasOwnProperty(prop)) {
-            State[prop].set(initialState[State[prop].name])
+            var state = initialState[State[prop].name] && decodeURIComponent(initialState[State[prop].name])
+            State[prop].set(state)
         }
     }
 })

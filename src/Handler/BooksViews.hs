@@ -9,12 +9,17 @@ import           Import
 import           Library    (SeriesCover (..))
 import qualified Library
 
-searchWidget :: Maybe Widget -> Widget
-searchWidget additionalTools =
+searchWidget :: Maybe Text -> Maybe Widget -> Widget
+searchWidget query additionalTools =
     [whamlet|
         <div .row #toolbar>
             <div .col-md-4 #search>
-                <input type="text" .form-control placeholder=_{MsgSearch}>
+                <form method=get .form-inline>
+                    <div .input-group>
+                        <input type="text" .form-control placeholder=_{MsgSearch} name=query value=#{fromMaybe "" query} autocomplete=off>
+                        <div .input-group-append>
+                            <button type="submit" .btn.btn-primary>
+                                <span .fa.fa-search>
             <div .col-md-8>
                 $maybe w <- additionalTools
                     ^{w}
@@ -67,7 +72,7 @@ getBookViewR = do
     query <- lookupGetParam "query"
     runSQL (Database.listBooksQuery query) >>= \books ->
         defaultLayout [whamlet|
-            ^{searchWidget Nothing}
+            ^{searchWidget query Nothing}
             <div .row #audiobook-container>
                 ^{audiobookContainerWidget books}
     |]
