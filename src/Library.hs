@@ -3,22 +3,23 @@
 
 module Library (
     getAudiobookCoverPath,
-    getSeriesCoverPath,
     isAudioFile,
     audiobookFromFilePath,
     reloadLibrary,
+    generateSeriesCoverJpeg,
+    getSeriesCover,
     MonadApplication,
+    SeriesCover(..)
 ) where
 
-import qualified Codec.Picture            as Picture
+import qualified Codec.Picture.Saving     as Picture
 import           Control.Applicative      ((<|>))
-import           Control.Monad.Catch      (catchIf)
 import           Data.Attoparsec.Text
+import qualified Data.ByteString.Lazy     as Lazy
 import qualified Data.Conduit.Combinators as CDT
 import qualified Data.Conduit.List        as CDTL
 import           Data.List.NonEmpty       (NonEmpty ((:|)))
 import qualified Data.List.NonEmpty       as NEL
-import           Data.Semigroup           (Max (Max), getMax)
 import           Data.Text                (Text)
 import qualified Data.Text                as T
 import           Database                 (AbAuthor (..), AbSeries (..),
@@ -32,8 +33,6 @@ import qualified PictureTools
 import qualified System.Directory         as D
 import           System.FilePath          ((</>))
 import qualified System.FilePath          as FP
-import           System.IO.Error          (isDoesNotExistError)
-import qualified System.Posix.Files       as Posix
 
 -- TODO: Need to move this someplace else if I start using it outside of this file
 type MonadApplication m = (MonadIO m, ReadSettings m, RunSQL m, MonadLogger m, MonadResource m)
@@ -48,55 +47,32 @@ findWithImageExtensions path = liftIO $ findM D.doesFileExist possiblePaths
     where possiblePaths = FP.replaceExtension path <$> imageExtensions
 
 getAudiobookCoverPath :: MonadIO m => Audiobook -> m (Maybe FilePath)
-getAudiobookCoverPath ab = findWithImageExtensions (T.unpack $ abPath ab)
+getAudiobookCoverPath audiobook = findWithImageExtensions (T.unpack $ abPath audiobook)
 
-getSeriesDirectory :: NonEmpty Audiobook -> FilePath
-getSeriesDirectory = FP.takeDirectory . T.unpack . abPath . NEL.head
+getSeriesDirectory :: Audiobook -> FilePath
+getSeriesDirectory = FP.takeDirectory . T.unpack . abPath
 
-getUserSeriesCoverPath :: MonadIO m => NonEmpty Audiobook -> m (Maybe FilePath)
-getUserSeriesCoverPath audiobooks = findWithImageExtensions (getSeriesDirectory audiobooks </> "cover")
+getUserSeriesCoverPath :: MonadIO m => Audiobook -> m (Maybe FilePath)
+getUserSeriesCoverPath audiobook = findWithImageExtensions (getSeriesDirectory audiobook </> "cover")
 
-getGeneratedSeriesCoverPath :: NonEmpty Audiobook -> FilePath
-getGeneratedSeriesCoverPath audiobooks = getSeriesDirectory audiobooks </> "cover.generated.jpg"
+generateSeriesCoverJpeg :: (MonadIO m, MonadLogger m) => NonEmpty FilePath -> m (Maybe Lazy.ByteString)
+generateSeriesCoverJpeg paths = fmap (Picture.imageToJpg 85) <$> PictureTools.pictureCollage 500 500 paths
 
-generateSeriesCover :: (MonadIO m, MonadLogger m) => FilePath -> [FilePath] -> m (Maybe FilePath)
-generateSeriesCover savePath abCoverPaths = case abCoverPaths of
-    [] -> return Nothing
-    x:xs -> do
-        collage <- PictureTools.pictureCollage 500 500 (x :| xs)
-        maybe (return Nothing) (\img -> liftIO $ Picture.saveJpgImage 85 savePath img >> return (Just savePath)) collage
+data SeriesCover
+    = FromPath FilePath
+    | GeneratedGrid (NonEmpty (Audiobook, FilePath))
+    | MissingSeriesCover
 
--- | Return path to cover image to use for a series given the books that are part of this series.
---   Returns Nothing if there is no cover, otherwise the returned file path can be assumed to exist.
-getSeriesCoverPath :: (MonadIO m, MonadLogger m) => NonEmpty Audiobook -> m (Maybe FilePath)
-getSeriesCoverPath audiobooks = do
-    userCoverPath <- getUserSeriesCoverPath audiobooks
-    if isJust userCoverPath then
-        return userCoverPath
-    else do
-        abCoverPaths <- catMaybes <$> mapM getAudiobookCoverPath (NEL.toList audiobooks)
-        let generatedCoverPath = getGeneratedSeriesCoverPath audiobooks
-            -- Returns the unix ctime or nothing if the file does not exist
-            getMaybeCTime fp = liftIO
-                $ flip (catchIf isDoesNotExistError) (const $ return Nothing)
-                $ Just . Posix.statusChangeTime <$> Posix.getFileStatus fp
-        abCoverChanges <- liftIO $ mapM getMaybeCTime abCoverPaths
-        let latestAbCoverChange = getMax $ foldl' (<>) (Max Nothing) (Max <$> abCoverChanges)
-        generatedCoverChange <- liftIO $ getMaybeCTime generatedCoverPath
-        putStrLn $ T.pack $ "generatedCoverChange " ++ show generatedCoverChange
-        putStrLn $ T.pack $ "latestAbCoverChange " ++ show latestAbCoverChange
-        case (latestAbCoverChange, generatedCoverChange) of
-            -- no audiobook cover and no generated cover
-            (Nothing, Nothing) -> return Nothing
-            -- no audiobook cover but generated cover
-            (Nothing, Just _)  -> return (Just generatedCoverPath)
-            -- at least one audiobook cover but no generated cover
-            (Just _, Nothing)  -> generateSeriesCover generatedCoverPath abCoverPaths
-            -- at least one audiobook cover and also a generated cover
-            (Just coverChange, Just generatedChange) ->
-                if coverChange <= generatedChange
-                    then return (Just generatedCoverPath)
-                    else generateSeriesCover generatedCoverPath abCoverPaths
+getSeriesCover :: MonadIO m => [Audiobook] -> m SeriesCover
+getSeriesCover audiobooks = do
+    userCoverPath <- maybe (return Nothing) getUserSeriesCoverPath (headMay audiobooks)
+    let audiobookAndCover audiobook = fmap (audiobook, ) <$> getAudiobookCoverPath audiobook
+    audiobookCoverPaths <- NEL.nonEmpty . catMaybes <$> mapM audiobookAndCover audiobooks
+    return $ case (userCoverPath, audiobookCoverPaths) of
+        (Just path, _)                 -> FromPath path
+        (Nothing, Just (a :| b:c:d:_)) -> GeneratedGrid (a :| [b, c, d])
+        (Nothing, Just (a :| _))       -> FromPath (snd a)
+        (Nothing, Nothing)             -> MissingSeriesCover
 
 isAudioFile :: ReadSettings m => m (FilePath -> Bool)
 isAudioFile = do

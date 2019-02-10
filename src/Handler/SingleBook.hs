@@ -5,17 +5,17 @@
 
 module Handler.SingleBook where
 
-import           Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.Text          as T
-import           Data.Time.Clock    (getCurrentTime)
-import           Database           (AbAuthor, AbSeries, AbTitle (..),
-                                     Audiobook, AudiobookT (..))
-import qualified Database           as DB
-import qualified Handler.SendFile   as SendFile
+import qualified Data.Text        as T
+import           Data.Time.Clock  (getCurrentTime)
+import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
+                                   AudiobookT (..))
+import qualified Database         as DB
+import qualified Handler.SendFile as SendFile
 import           Import
+import           Library          (SeriesCover (..))
 import qualified Library
-import qualified System.Directory   as Directory
-import           Yesod.RssFeed      (RepRss, rssFeed)
+import qualified System.Directory as Directory
+import           Yesod.RssFeed    (RepRss, rssFeed)
 
 withBook :: (Audiobook -> Handler a) -> AbAuthor -> AbTitle -> Handler a
 withBook f _author _title = runSQLGetOr404 (DB.getAudiobookByAuthorTitle _author _title) >>= f
@@ -32,11 +32,14 @@ getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookCoverR = withBook bookCover
 
 getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
-getSeriesCoverR = withSeriesBooks $ \case
-    []   ->  redirect (StaticR img_cover_placeholder_svg)
-    x:xs -> do
-        collagePath <- Library.getSeriesCoverPath (x :| xs)
-        maybe (redirect $ StaticR img_cover_placeholder_svg) SendFile.sendFileMime collagePath
+getSeriesCoverR = withSeriesBooks $ \books -> do
+    cover <- Library.getSeriesCover books
+    case cover of
+        MissingSeriesCover -> redirect (StaticR img_cover_placeholder_svg)
+        GeneratedGrid audiobooksAndPaths -> do
+            generated <- Library.generateSeriesCoverJpeg (snd <$> audiobooksAndPaths)
+            maybe (redirect $ StaticR img_cover_placeholder_svg) (respond typeJpeg) generated
+        FromPath path -> SendFile.sendFileMime path
 
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)

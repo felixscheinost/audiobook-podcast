@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 51ef699f12525fe6b669d0b963e93819004bd16e36007f8dc6a68305785b25cd
+-- hash: 4c6441c6e764aaa4c1717be60611f5744761c45c99d7e6ba877364cc0283e406
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -41,7 +41,7 @@ library
       Paths_audiobook_podcast
   hs-source-dirs:
       src
-  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
+  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase, TupleSections
   build-depends:
       JuicyPixels
     , aeson
@@ -107,7 +107,7 @@ executable audiobook-podcast
       Paths_audiobook_podcast
   hs-source-dirs:
       app
-  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase
+  default-extensions: NamedFieldPuns, OverloadedStrings, NoImplicitPrelude, LambdaCase, TupleSections
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       JuicyPixels

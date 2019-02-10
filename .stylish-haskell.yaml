@@ -228,3 +228,4 @@ language_extensions:
     - OverloadedStrings
     - NoImplicitPrelude
     - LambdaCase
+    - TupleSections

@@ -37,6 +37,9 @@ instance Yesod App where
 instance RunSQL (HandlerFor App) where
     dbConnection = appDbConnection <$> getYesod
 
+instance RunSQL (WidgetFor App) where
+    dbConnection = appDbConnection <$> handlerToWidget getYesod
+
 runSQLGetOr404 :: (Sql.Connection -> IO (Maybe a)) -> Handler a
 runSQLGetOr404 = (>>= maybe notFound return) . runSQL
 
