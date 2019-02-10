@@ -5,10 +5,14 @@
 /static         StaticR     EmbeddedStatic      appStatic
 
 /                                       BookViewR           GET
+
 /reload                                 ReloadLibraryR      GET
-/book/#AbAuthor/#AbTitle/cover          BookCoverR          GET
+
+/series/#AbAuthor/#AbSeries             SeriesViewR         GET
 /series/#AbAuthor/#AbSeries/cover       SeriesCoverR        GET
-/book/#AbAuthor/#AbTitle/overlay        BookOverlayR        GET
 /series/#AbAuthor/#AbSeries/overlay     SeriesOverlayR      GET
+
+/book/#AbAuthor/#AbTitle/cover          BookCoverR          GET
+/book/#AbAuthor/#AbTitle/overlay        BookOverlayR        GET
 /book/#AbAuthor/#AbTitle/rss            BookRssR            GET
 /book/#AbAuthor/#AbTitle/file           BookFileR           GET

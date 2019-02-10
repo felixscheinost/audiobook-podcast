@@ -2,14 +2,17 @@
 
 module Handler.BooksViews where
 
-import qualified Data.Char  as C
-import qualified Data.Text  as T
-import           Database   (AbAuthor, AbSeries, AbTitle, AudiobookT (abTitle))
+import qualified Data.Char        as C
+import qualified Data.Text        as T
+import           Database         (AbAuthor, AbSeries, AbTitle,
+                                   AudiobookT (abTitle))
 import qualified Database
 import           Foundation
 import           Import
-import           Library    (SeriesCover (..))
+import           Library          (SeriesCover (..))
 import qualified Library
+import           Yesod.Core.Types (ErrorResponse (InternalError),
+                                   HandlerContents (HCError))
 
 searchWidget :: Maybe Text -> Widget
 searchWidget query =
@@ -24,43 +27,48 @@ searchWidget query =
                                 <span .fa.fa-search>
     |]
 
+data BookOrSeries = Book AbTitle | Series AbSeries SeriesCover
+
 singleBook :: Maybe Text -> (AbAuthor, Maybe AbSeries, Maybe AbTitle) -> Widget
 singleBook searchQuery (author, series, title) = do
-    seriesWithBooks <- flip (maybe (return Nothing)) series $ \abSeries -> do
-        books <- runSQL (Database.getAudiobooksByAuthorSeries author abSeries)
-        cover <- Library.getSeriesCover books
-        return $ Just (abSeries, cover)
+    bookOrSeries <- case (series, title) of
+            (Just abSeries, _) -> do
+                books <- runSQL (Database.getAudiobooksByAuthorSeries author abSeries)
+                seriesCover <- Library.getSeriesCover books
+                return (Series abSeries seriesCover)
+            (_, Just abTitle) ->
+                return (Book abTitle)
+            (Nothing, Nothing) ->
+                liftIO $ throwIO $ HCError $ InternalError "Shouldn't happen: Result was neither series or book"
     urlRender <- getUrlRenderParams
-    let modalUrl = case (series, title) of
-            (Just abSeries, _) -> urlRender (SeriesOverlayR author abSeries) []
-            (_, Just abTitle) -> urlRender (BookOverlayR author abTitle) []
-            _ -> ""
-    let titleOrSeries = case (series, title) of
-            (Just abSeries, _) -> toHtml abSeries
-            (_, Just abTitle)  -> toHtml abTitle
-            _                  -> ""
-    let bookTitleLinkHref = urlRender BookViewR $ ("modalUrl", modalUrl) : maybeToList (("query", ) <$> searchQuery)
+    let modalUrl abTitle = urlRender (BookOverlayR author abTitle) []
+        currentUrlWithBookModal abTitle = urlRender BookViewR $ ("modalUrl", modalUrl abTitle) : maybeToList (("query", ) <$> searchQuery)
     [whamlet|
         <div .audiobook .col-4 .col-sm-3 .col-md-3 .col-lg-2 .col-xl-2>
-            <div .audiobook-wrapper data-modal-url=#{modalUrl}>
-                $case (seriesWithBooks, title)
-                    $of (Just (_, GeneratedGrid audiobooksAndPaths), _)
-                        <div .img-wrapper.four>
-                            $forall (book, _) <- audiobooksAndPaths
-                                <img src=@{BookCoverR author (abTitle book)}>
-                    $of (Just (abSeries, _), _)
+            $case bookOrSeries
+                $of Series abSeries cover
+                    <div .audiobook-wrapper>
+                        $case cover
+                            $of GeneratedGrid audiobooksAndPaths
+                                <a .img-wrapper.four href=@{SeriesViewR author abSeries}>
+                                    $forall (book, _) <- audiobooksAndPaths
+                                        <img src=@{BookCoverR author (abTitle book)}>
+                            $of _
+                                <a .img-wrapper.one href=@{SeriesViewR author abSeries}>
+                                    <div .img-wrapper.one>
+                                        <img src=@{SeriesCoverR author abSeries}>
+                        <div .text-wrapper>
+                            <a href=@{SeriesViewR author abSeries} .text-bold> #{abSeries}
+                            <br>
+                            <span .text-small> #{author}
+                $of Book abTitle
+                    <div .audiobook-wrapper data-modal-url=@{BookOverlayR author abTitle}>
                         <div .img-wrapper.one>
-                            <img src=@{SeriesCoverR author abSeries}>
-                    $of (_, Just abTitle)
-                        <div .img-wrapper.one>
-                            <img src=@{BookCoverR author abTitle}>
-                    $of _
-                        <div .img-wrapper.one>
-                            <img src=@{StaticR img_cover_placeholder_svg}>
-                <div .text-wrapper>
-                    <a href=#{bookTitleLinkHref} .text-bold rel=title> #{titleOrSeries}
-                    <br>
-                    <span .text-small> #{author}
+                            <img src=@{BookCoverR author abTitle }>
+                        <div .text-wrapper>
+                            <a href=#{currentUrlWithBookModal abTitle} .text-bold rel=title> #{abTitle}
+                            <br>
+                            <span .text-small> #{author}
     |]
 
 audiobookContainerWidget :: Maybe Text -> [(AbAuthor, Maybe AbSeries, Maybe AbTitle)] -> Widget
@@ -78,10 +86,10 @@ getBookViewR = do
         case query of
             Just q ->
                 if isJust $ T.find (not . C.isSpace) q then
-                    setTitle $ toHtml $ "Audiobook-Podcast: " ++ q
+                    setTitle $ toHtml $ "audiobook podcast - search - " ++ q
                 else
-                    setTitle $ toHtml ("Audiobook-Podcast" :: Text)
-            Nothing -> setTitle $ toHtml ("Audiobook-Podcast" :: Text)
+                    setTitle $ toHtml ("audiobook podcast" :: Text)
+            Nothing -> setTitle $ toHtml ("audiobook podcast" :: Text)
         [whamlet|
             ^{searchWidget query}
             <div .row #audiobook-container>

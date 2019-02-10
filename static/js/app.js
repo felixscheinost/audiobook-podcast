@@ -125,7 +125,7 @@ $(document).ready(function () {
     /**
      * Modals for books
      */
-    $(document).on("click", ".img-wrapper, .text-wrapper a[rel=title]", function (e) {
+    $(document).on("click", ".audiobook-wrapper[data-modal-url] .img-wrapper, .audiobook-wrapper[data-modal-url] .text-wrapper a[rel=title]", function (e) {
         State.modalUrl.set($(this).parents(".audiobook-wrapper").attr("data-modal-url"));
         e.preventDefault();
     })
