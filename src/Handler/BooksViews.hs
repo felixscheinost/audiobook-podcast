@@ -2,6 +2,8 @@
 
 module Handler.BooksViews where
 
+import qualified Data.Char  as C
+import qualified Data.Text  as T
 import           Database   (AbAuthor, AbSeries, AbTitle, AudiobookT (abTitle))
 import qualified Database
 import           Foundation
@@ -70,22 +72,17 @@ audiobookContainerWidget books =
 getBookViewR :: Handler Html
 getBookViewR = do
     query <- lookupGetParam "query"
-    runSQL (Database.listBooksQuery query) >>= \books ->
-        defaultLayout [whamlet|
+    books <- runSQL (Database.listBooksQuery query)
+    defaultLayout $ do
+        case query of
+            Just q ->
+                if isJust $ T.find (not . C.isSpace) q then
+                    setTitle $ toHtml $ "Audiobook-Podcast: " ++ q
+                else
+                    setTitle $ toHtml ("Audiobook-Podcast" :: Text)
+            Nothing -> setTitle $ toHtml ("Audiobook-Podcast" :: Text)
+        [whamlet|
             ^{searchWidget query Nothing}
             <div .row #audiobook-container>
                 ^{audiobookContainerWidget books}
-    |]
-
-
-postBookViewR :: Handler Html
-postBookViewR = do
-    query <- lookupPostParam "query"
-    booksAndSeries <- runSQL (Database.listBooksQuery query)
-    pc <- widgetToPageContent $ audiobookContainerWidget booksAndSeries
-    withUrlRenderer [hamlet|
-        ^{pageBody pc}
-    |]
-
-getHomeR :: Handler Html
-getHomeR = redirect BookViewR
+        |]
