@@ -123,7 +123,7 @@ $(document).ready(function () {
     /**
      * Modals for books
      */
-    $(document).on("click", "#audiobook-container:not(.selectable) .audiobook img[data-modal-url]", function () {
+    $(document).on("click", "#audiobook-container:not(.selectable) .audiobook .img-wrapper[data-modal-url]", function () {
         State.modalUrl.set($(this).attr("data-modal-url"));
     })
 
