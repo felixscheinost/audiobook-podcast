@@ -1,3 +1,44 @@
+
+function decodeStateFromUrl() {
+    var state = {}
+    window.location.search.substr(1).split("&").forEach(function (keyVal) {
+        var split = keyVal.split("=")
+        var key = split[0]
+        var value = split[1]
+        if (key !== undefined && value !== undefined) {
+            state[decodeURIComponent(key)] = decodeURIComponent(value)
+        }
+    })
+    return state
+}
+
+function encodeStateToUrl(state, push) {
+    var stateForUrl = ""
+    for (var key in state) {
+        var value = state[key]
+        if (state.hasOwnProperty(key) && value) {
+            if (stateForUrl.length > 0) {
+                stateForUrl += "&"
+            }
+            stateForUrl += encodeURIComponent(key)
+            stateForUrl += "="
+            stateForUrl += encodeURIComponent(value)
+        }
+    }
+    var newUrl = window.location.href.split("?")[0]
+    if (stateForUrl.length > 0) {
+        newUrl += "?"
+        newUrl += stateForUrl
+    }
+    if (newUrl !== window.location.href) {
+        if (push) {
+            window.history.pushState(undefined, "", newUrl)
+        } else {
+            window.history.replaceState(undefined, "", newUrl)
+        }
+    }
+}
+
 /**
  * State mechanism:
  *  - Subscribe to state changes
@@ -8,46 +49,7 @@
 function StateProp(name, push) {
     var handlers = []
     var lastValue
-
-    function decodeStateFromUrl() {
-        var state = {}
-        window.location.search.substr(1).split("&").forEach(function (keyVal) {
-            var split = keyVal.split("=")
-            var key = split[0]
-            var value = split[1]
-            if (key !== undefined && value !== undefined) {
-                state[decodeURIComponent(key)] = decodeURIComponent(value)
-            }
-        })
-        return state
-    }
-
-    function encodeStateToUrl(state) {
-        var stateForUrl = ""
-        for (var key in state) {
-            var value = state[key]
-            if (state.hasOwnProperty(key) && value !== undefined) {
-                if (stateForUrl.length > 0) {
-                    stateForUrl += "&"
-                }
-                stateForUrl += encodeURIComponent(key)
-                stateForUrl += "="
-                stateForUrl += encodeURIComponent(value)
-            }
-        }
-        var newUrl = window.location.href.split("?")[0]
-        if (stateForUrl.length > 0) {
-            newUrl += "?"
-            newUrl += stateForUrl
-        }
-        if (newUrl !== window.location.href) {
-            if (push) {
-                window.history.pushState(undefined, "", newUrl)
-            } else {
-                window.history.replaceState(undefined, "", newUrl)
-            }
-        }
-    }
+    this.name = name
 
     function callHandlers(value) {
         handlers.forEach(function (handler) {
@@ -57,7 +59,6 @@ function StateProp(name, push) {
 
     this.subscribe = function (handler) {
         handlers.push(handler)
-        handler(lastValue)
     }
 
     this.set = function (value) {
@@ -65,13 +66,11 @@ function StateProp(name, push) {
             callHandlers(value)
             var state = decodeStateFromUrl()
             state[name] = value
-            encodeStateToUrl(state)
+            encodeStateToUrl(state, push)
             lastValue = value
         }
     }
 
-    // Initial value from URL
-    this.set(decodeStateFromUrl()[name])
     var that = this;
     window.addEventListener('popstate', function () {
         that.set(decodeStateFromUrl()[name])
@@ -141,4 +140,14 @@ $(document).ready(function () {
             State.searchQuery.set(input.val())
         }, 300)
     })
+
+    /**
+     * Initial state from URL
+     */
+    var initialState = decodeStateFromUrl()
+    for (var prop in State) {
+        if (State.hasOwnProperty(prop)) {
+            State[prop].set(initialState[State[prop].name])
+        }
+    }
 })
