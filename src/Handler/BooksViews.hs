@@ -41,24 +41,23 @@ singleBook searchQuery (author, series, title) = do
             (Nothing, Nothing) ->
                 liftIO $ throwIO $ HCError $ InternalError "Shouldn't happen: Result was neither series or book"
     urlRender <- getUrlRenderParams
-    let modalUrl abTitle = urlRender (BookOverlayR author abTitle) []
-        currentUrlWithBookModal abTitle = urlRender BookViewR $ ("modalUrl", modalUrl abTitle) : maybeToList (("query", ) <$> searchQuery)
+    let currentUrlWithModalUrl modalRoute = urlRender BookViewR $ ("modalUrl", urlRender modalRoute []) : maybeToList (("query", ) <$> searchQuery)
     [whamlet|
         <div .audiobook .col-4 .col-sm-3 .col-md-3 .col-lg-2 .col-xl-2>
             $case bookOrSeries
                 $of Series abSeries cover
-                    <div .audiobook-wrapper>
+                    <div .audiobook-wrapper data-modal-url=@{SeriesViewR author abSeries}>
                         $case cover
                             $of GeneratedGrid audiobooksAndPaths
-                                <a .img-wrapper.four href=@{SeriesViewR author abSeries}>
+                                <a .img-wrapper.four>
                                     $forall (book, _) <- audiobooksAndPaths
                                         <img src=@{BookCoverR author (abTitle book)}>
                             $of _
-                                <a .img-wrapper.one href=@{SeriesViewR author abSeries}>
+                                <a .img-wrapper.one>
                                     <div .img-wrapper.one>
                                         <img src=@{SeriesCoverR author abSeries}>
                         <div .text-wrapper>
-                            <a href=@{SeriesViewR author abSeries} .text-bold> #{abSeries}
+                            <a href=#{currentUrlWithModalUrl (SeriesViewR author abSeries)} .text-bold> #{abSeries}
                             <br>
                             <span .text-small> #{author}
                 $of Book abTitle
@@ -66,7 +65,7 @@ singleBook searchQuery (author, series, title) = do
                         <div .img-wrapper.one>
                             <img src=@{BookCoverR author abTitle }>
                         <div .text-wrapper>
-                            <a href=#{currentUrlWithBookModal abTitle} .text-bold rel=title> #{abTitle}
+                            <a href=#{currentUrlWithModalUrl (BookOverlayR author abTitle)} .text-bold rel=title> #{abTitle}
                             <br>
                             <span .text-small> #{author}
     |]
