@@ -4,7 +4,7 @@ module Settings.StaticFiles where
 
 import           Prelude                         (Bool (..))
 import           Yesod.EmbeddedStatic            (mkEmbeddedStatic)
-import           Yesod.EmbeddedStatic.Generators (embedDir)
+import           Yesod.EmbeddedStatic.Generators (embedDirAt, embedFileAt)
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
@@ -21,7 +21,13 @@ import           Yesod.EmbeddedStatic.Generators (embedDir)
 -- staticFiles "static"
 
 #ifdef DEVELOPMENT
-mkEmbeddedStatic True "myStatic" [embedDir "static"]
+#define DEV_BOOL True
 #else
-mkEmbeddedStatic False "myStatic" [embedDir "static"]
+#define DEV_BOOL False
 #endif
+mkEmbeddedStatic DEV_BOOL "myStatic"
+    [ embedDirAt "css" "static/css"
+    , embedDirAt "webfonts" "static/webfonts"
+    , embedDirAt "img" "static/img"
+    , embedFileAt "js/dist/bundle.js" "static/js/dist/bundle.js"
+    ]

@@ -19,32 +19,9 @@ body {
     font-weight: bold;
 }
 
-/** MODAL **/
-
-.book-modal img, .book-modal a {
-    float: left;
+.cursor-pointer {
+    cursor: pointer;
 }
-
-.book-modal img {
-    height: 125px;
-    margin-right: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-}
-
-.book-modal a {
-    margin: 10px 10px 10px 0;
-}
-.row {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display:         flex;
-    flex-wrap: wrap;
-  }
-  .row > [class*='col-'] {
-    display: flex;
-    flex-direction: column;
-  }
 
 /** AUDIOBOOK **/
 
@@ -136,7 +113,6 @@ Padding is always calculated using percentage of parents *width*
     left: 50%;
 }
     
-
 .audiobook .placeholder-title {
     position: absolute;
     top: 25%;

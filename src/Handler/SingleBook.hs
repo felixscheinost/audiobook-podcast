@@ -47,16 +47,19 @@ bookOverlay :: Audiobook -> Handler Html
 bookOverlay Audiobook{abTitle, abAuthor} = do
     -- TODO: Probably don't need a widget here
     pc <- widgetToPageContent [whamlet|
-        <div .modal-header>
-            <h5 .modal-title> #{abTitle}
-            <button .close type="button" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;
-        <div .modal-body .book-modal>
-            <div .input-group>
-                <input type="text" .form-control readonly="" value=@{BookRssR abAuthor abTitle} #copy-rss-input>
-                <div .input-group-append>
-                    <button .btn.btn-secondary type="button" #copy-rss-button data-clipboard-target="#copy-rss-input">
-                        _{MsgCopyRSSLink}
+        <div .modal.fade tabindex="-1" role="dialog" aria-hidden="true">
+            <div .modal-dialog.modal-lg>
+                <div .modal-content>
+                    <div .modal-header>
+                        <h5 .modal-title> #{abTitle}
+                        <button .close type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;
+                    <div .modal-body .book-modal>
+                        <div .input-group>
+                            <input type="text" .form-control readonly="" value=@{BookRssR abAuthor abTitle} #copy-rss-input>
+                            <div .input-group-append>
+                                <button .btn.btn-secondary type="button" #copy-rss-button data-clipboard-target="#copy-rss-input">
+                                    _{MsgCopyRSSLink}
     |]
     withUrlRenderer [hamlet|
         ^{pageBody pc}

@@ -3,6 +3,8 @@ client_session_key.aes
 logs
 settings.yaml
 tmp/
+static/js/node_modules
+static/js/dist
 
 dist*
 static/tmp/
