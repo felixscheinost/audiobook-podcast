@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 853c6fb4437dcab0bce782f076b7512de5cc38aa8f6b4f844e70fd6cf056d9c6
+-- hash: 173a2ebf9a1ec74466d990a33af635ed9f083207d5d12452fac7f76839b0a563
 
 name:           audiobook-podcast
 version:        0.0.0
@@ -27,11 +27,11 @@ library
       Database.Queries
       Database.Tables
       Foundation
+      Handler.Book
       Handler.BooksViews
       Handler.Library
       Handler.SendFile
-      Handler.SeriesView
-      Handler.SingleBook
+      Handler.Series
       Import
       Import.NoFoundation
       Library

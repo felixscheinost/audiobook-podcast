@@ -11,6 +11,7 @@
 /series/#AbAuthor/#AbSeries             SeriesViewR         GET
 /series/#AbAuthor/#AbSeries/cover       SeriesCoverR        GET
 /series/#AbAuthor/#AbSeries/overlay     SeriesOverlayR      GET
+/series/#AbAuthor/#AbSeries/rss         SeriesRssR          GET
 
 /book/#AbAuthor/#AbTitle/cover          BookCoverR          GET
 /book/#AbAuthor/#AbTitle/overlay        BookOverlayR        GET

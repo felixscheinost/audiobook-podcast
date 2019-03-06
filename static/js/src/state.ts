@@ -2,18 +2,23 @@ export function decodeStateFromUrl(): Map<string, string> {
     let state = new Map<string, string>()
     window.location.search.substr(1).split("&").forEach((keyVal: string) => {
         let [k, v] = keyVal.split("=")
-        state.set(k, v)
+        if (k && v) {
+            state.set(decodeURIComponent(k), decodeURIComponent(v))
+        }
     })
     return state
 }
 
 function encodeStateToUrl(state: Map<string, string>, push: boolean): void {
     let stateForUrl = ""
-    state.forEach((k: string, v: string) => {
+    console.log("encode", state)
+    state.forEach((v: string, k: string) => {
         if (stateForUrl.length > 0) {
             stateForUrl += "&"
         }
-        stateForUrl += `${k}=${v}`
+        if (k && v) {
+            stateForUrl += `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+        }
     })
     var newUrl = window.location.href.split("?")[0]
     if (stateForUrl.length > 0) {
@@ -49,8 +54,8 @@ export class StateProp {
         this._value = null
         let that = this;
         function fromUrl() {
-            const fromUrl = decodeStateFromUrl().get(name)
-            that.value = (fromUrl && decodeURIComponent(fromUrl)) || null
+            console.log("fromURL")
+            that.value = decodeStateFromUrl().get(name) || null
         }
         window.addEventListener('popstate', fromUrl)
         fromUrl()
@@ -65,12 +70,17 @@ export class StateProp {
             this._value = newValue
             this.handlers.forEach(h => h(newValue))
             const urlState = decodeStateFromUrl()
-            newValue && urlState.set(this.name, newValue.toString())
+            if (newValue) {
+                urlState.set(this.name, newValue)
+            } else {
+                urlState.delete(this.name)
+            }
             encodeStateToUrl(urlState, this.push)
         }
     }
 
     subscribe(handler: (value: string | null) => void): void {
         this.handlers.push(handler)
+        handler(this.value)
     }
 }

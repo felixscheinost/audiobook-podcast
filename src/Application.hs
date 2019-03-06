@@ -30,10 +30,10 @@ import           System.Log.FastLogger                (defaultBufSize,
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file
+import           Handler.Book
 import           Handler.BooksViews
 import           Handler.Library
-import           Handler.SeriesView
-import           Handler.SingleBook
+import           Handler.Series
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the

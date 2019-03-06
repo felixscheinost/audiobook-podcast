@@ -2,7 +2,7 @@
 {-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Handler.SingleBook where
+module Handler.Book where
 
 import qualified Data.Text        as T
 import           Data.Time.Clock  (getCurrentTime)
@@ -30,22 +30,11 @@ bookCover book = do
 getBookCoverR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookCoverR = withBook bookCover
 
-getSeriesCoverR :: AbAuthor -> AbSeries -> Handler TypedContent
-getSeriesCoverR = withSeriesBooks $ \books -> do
-    cover <- Library.getSeriesCover books
-    case cover of
-        MissingSeriesCover -> redirect (StaticR img_cover_placeholder_svg)
-        GeneratedGrid audiobooksAndPaths -> do
-            generated <- Library.generateSeriesCoverJpeg (snd <$> audiobooksAndPaths)
-            maybe (redirect $ StaticR img_cover_placeholder_svg) (respond typeJpeg) generated
-        FromPath path -> SendFile.sendFileMime path
-
 getBookFileR :: AbAuthor -> AbTitle -> Handler TypedContent
 getBookFileR = withBook (SendFile.sendFileMime . T.unpack . abPath)
 
 bookOverlay :: Audiobook -> Handler Html
 bookOverlay Audiobook{abTitle, abAuthor} = do
-    -- TODO: Probably don't need a widget here
     pc <- widgetToPageContent [whamlet|
         <div .modal.fade tabindex="-1" role="dialog" aria-hidden="true">
             <div .modal-dialog.modal-lg>
