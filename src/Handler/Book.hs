@@ -11,7 +11,6 @@ import           Database         (AbAuthor, AbSeries, AbTitle (..), Audiobook,
 import qualified Database         as DB
 import qualified Handler.SendFile as SendFile
 import           Import
-import           Library          (SeriesCover (..))
 import qualified Library
 import qualified System.Directory as Directory
 import           Yesod.RssFeed    (RepRss, rssFeed)
