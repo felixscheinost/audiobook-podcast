@@ -18,7 +18,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-12.20
+resolver: lts-13.26
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -40,7 +40,8 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- beam-sqlite-0.3.2.3@sha256:5b3a3a81f06ad05d2d461847b3c1bb4130a1dd38c8b5dc129df311c4230fd46b
+- beam-sqlite-0.4.0.0 # stackage snapshot doesn't contain this package
+- beam-migrate-0.4.0.1 
 - regex-1.0.1.4
 
 # Override default flag values for local packages and extra-deps

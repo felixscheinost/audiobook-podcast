@@ -57,7 +57,7 @@ seriesFeed abAuthor@(AbAuthor author) abSeries@(AbSeries series) books = do
             MissingSeriesCover -> Nothing
             _                  -> Just (SeriesCoverR abAuthor abSeries, series)
     now <- Time.getCurrentTime
-    entries <- forM (zip [0, -1..] $ NEL.toList books) $ \(i, Audiobook{abTitle=abTitle@(AbTitle title), abPath}) -> do
+    entries <- forM (zip [0 :: Int, -1..] $ NEL.toList books) $ \(i, Audiobook{abTitle=abTitle@(AbTitle title), abPath}) -> do
         size <- Directory.getFileSize (T.unpack abPath)
         return FeedEntry
             { feedEntryLink = BookRssR abAuthor abTitle

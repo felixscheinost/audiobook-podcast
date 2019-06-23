@@ -13,14 +13,10 @@ module Database.Queries (
 ) where
 
 import           Data.Maybe                      (fromMaybe)
-import           Data.Proxy
 import           Data.Text                       (Text)
 import qualified Data.Text                       as T
 import           Database.Beam
-import           Database.Beam.Backend.SQL.SQL92 (IsSql92DeleteSyntax,
-                                                  deleteStmt,
-                                                  deleteSupportsAlias)
-import           Database.Beam.Schema.Tables     (DatabaseEntity (..), DatabaseEntityDescriptor (DatabaseTable))
+import Database.Beam.Backend.SQL (BeamSqlBackend)
 import           Database.Beam.Sqlite
 import           Database.SQLite.Simple          (Connection)
 import           Database.Tables
@@ -46,6 +42,9 @@ getAudiobookById _id conn = runBeamSqlite conn $ runSelectReturningOne $ select 
     guard_ (abId b ==. val_ _id)
     return b
 
+justAbTitle :: BeamSqlBackend be => AudiobookT (QExpr be s) -> QExpr be s (Maybe AbTitle)
+justAbTitle b = just_ (abTitle b)
+
 listBooksQuery :: Maybe Text -> Connection -> IO [(AbAuthor, Maybe AbSeries, Maybe AbTitle)]
 listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ select $ nub_ $ do
     b <- orderBy_
@@ -58,19 +57,9 @@ listBooksQuery mQuery conn = runBeamSqlite conn $ runSelectReturningList $ selec
     return
         ( abAuthor b
         , abSeries b
-        , if_ [isNothing_ (abSeries b) `then_` just_ (abTitle b)] (else_ nothing_)
+        , if_ [isNothing_ (abSeries b) `then_` (justAbTitle b)] (else_ nothing_)
         )
 
-deleteAll :: forall be db delete table
-            . IsSql92DeleteSyntax delete
-           => DatabaseEntity be db (TableEntity table)
-            -- ^ Table to delete from
-           -> SqlDelete delete table
-deleteAll (DatabaseEntity (DatabaseTable tblNm _)) = SqlDelete (deleteStmt tblNm alias Nothing)
-    where
-        supportsAlias = deleteSupportsAlias (Proxy @delete)
-        tgtName = "delete_target"
-        alias = if supportsAlias then Just tgtName else Nothing
-
 deleteAllAudiobooks :: Connection -> IO ()
-deleteAllAudiobooks conn = runBeamSqlite conn $ runDelete $ deleteAll (dbAudiobooks db)
+deleteAllAudiobooks conn = runBeamSqlite conn $ runDelete $ 
+    delete (dbAudiobooks db) (const $ val_ True)

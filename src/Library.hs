@@ -27,7 +27,6 @@ import           Database                 (AbAuthor (..), AbSeries (..),
                                            AudiobookT (..), NewAudiobook (..),
                                            RunSQL, runSQL)
 import qualified Database
-import           Database.Beam
 import           Import.NoFoundation
 import qualified PictureTools
 import qualified System.Directory         as D

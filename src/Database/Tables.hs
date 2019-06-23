@@ -13,7 +13,7 @@ module Database.Tables where
 
 import           Data.Text                        (Text)
 import           Database.Beam
-import           Database.Beam.Backend.SQL.SQL92
+import           Database.Beam.Backend.SQL
 import           Database.Beam.Sqlite             (Sqlite)
 import           Database.SQLite.Simple.FromField
 import           Import.NoFoundation
@@ -75,7 +75,7 @@ instance Database be DB
 db :: DatabaseSettings be DB
 db = defaultDbSettings `withDbModification`
     dbModification {
-        dbAudiobooks = modifyTable (const "audiobooks") tableModification
+        dbAudiobooks = setEntityName "audiobooks"
     }
 
 
@@ -86,17 +86,17 @@ db = defaultDbSettings `withDbModification`
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbTitle where
     sqlValueSyntax (AbTitle t) = sqlValueSyntax t
 instance FromBackendRow Sqlite AbTitle
-instance IsSqlExpressionSyntaxStringType be AbTitle
-instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbTitle
+instance BeamSqlBackendIsString be AbTitle
+instance BeamSqlBackend  be => HasSqlEqualityCheck be AbTitle
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbAuthor where
     sqlValueSyntax (AbAuthor t) = sqlValueSyntax t
 instance FromBackendRow Sqlite AbAuthor
-instance IsSqlExpressionSyntaxStringType be AbAuthor
-instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbAuthor
+instance BeamSqlBackendIsString be AbAuthor
+instance BeamSqlBackend  be => HasSqlEqualityCheck be AbAuthor
 
 instance HasSqlValueSyntax be Text => HasSqlValueSyntax be AbSeries where
     sqlValueSyntax (AbSeries t) = sqlValueSyntax t
 instance FromBackendRow Sqlite AbSeries
-instance IsSqlExpressionSyntaxStringType be AbSeries
-instance IsSql92ExpressionSyntax be => HasSqlEqualityCheck be AbSeries
+instance BeamSqlBackendIsString be AbSeries
+instance BeamSqlBackend  be => HasSqlEqualityCheck be AbSeries
