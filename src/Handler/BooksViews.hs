@@ -54,15 +54,14 @@ singleBook searchQuery (author, series, title) = do
                                         <img src=@{BookCoverR author (abTitle book)}>
                             $of _
                                 <a .img-wrapper.one>
-                                    <div .img-wrapper.one>
-                                        <img src=@{SeriesCoverR author abSeries}>
+                                    <img src=@{SeriesCoverR author abSeries}>
                         <div .text-wrapper>
                             <a href=#{currentUrlWithModalUrl (SeriesViewR author abSeries)} .text-bold> #{abSeries}
                             <br>
                             <span .text-small> #{author}
                 $of Book abTitle
                     <div .audiobook-wrapper data-modal-url=@{BookOverlayR author abTitle}>
-                        <div .img-wrapper.one>
+                        <a .img-wrapper.one>
                             <img src=@{BookCoverR author abTitle }>
                         <div .text-wrapper>
                             <a href=#{currentUrlWithModalUrl (BookOverlayR author abTitle)} .text-bold rel=title> #{abTitle}
